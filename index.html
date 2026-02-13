@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Brick Tutorial Creator</title>
+
+    
+<script type="module">
+import init, * as bindings from '/BrickCreator/frontend-ef48a0e20c9f84dd.js';
+const wasm = await init({ module_or_path: '/BrickCreator/frontend-ef48a0e20c9f84dd_bg.wasm' });
+
+
+window.wasmBindings = bindings;
+
+
+dispatchEvent(new CustomEvent("TrunkApplicationStarted", {detail: {wasm}}));
+
+</script>
+    <link rel="stylesheet" href="/BrickCreator/index-fcc9a838c687ee38.css" integrity="sha384-the6Ke0bQhXFtTZxfDHL76HgcVQTZnim7XkrlZmyOoYwiAVy8KZwa43VpNiGDSKk"/>
+<link rel="modulepreload" href="/BrickCreator/frontend-ef48a0e20c9f84dd.js" crossorigin="anonymous" integrity="sha384-PQKSAtWyjWRVVL6XvhpG7aBEoE1JA8zpJtBC975UAZZCukzIyBrLPXfHOxk1oUDR"><link rel="preload" href="/BrickCreator/frontend-ef48a0e20c9f84dd_bg.wasm" crossorigin="anonymous" integrity="sha384-S2uSKuaQBjzyfBqtMvGowlz0lXCo7aKkD0j8TIBJvZKsbQDq5z1b8f5uMCzsg2Bc" as="fetch" type="application/wasm"></head>
+
+<body></body>
+
+</html>
