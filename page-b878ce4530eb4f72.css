@@ -1,0 +1,14 @@
+.page {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.page__main {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: var(--gap);
+    overflow: auto;
+}
