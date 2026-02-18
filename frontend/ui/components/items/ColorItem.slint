@@ -1,0 +1,83 @@
+import { BaseCard } from "../BaseCard.slint";
+import { ApplicationStyle } from "../../ApplicationStyle.slint";
+
+export struct ColorSchemeInfo {
+    id: int,
+    name: string,
+    color: color,
+    shade: color,
+    border: color,
+    text: color,
+}
+
+export component ColorItem inherits BaseCard {
+    in property <ColorSchemeInfo> scheme;
+
+    // Title
+    Text {
+        x: 0;
+        y: ApplicationStyle.spacing-md;
+        width: parent.width;
+        text: scheme.name;
+        font-weight: ApplicationStyle.font-weight-bold;
+        font-size: ApplicationStyle.font-size-md;
+        color: ApplicationStyle.text-primary;
+        horizontal-alignment: center;
+    }
+
+    // Color preview box
+    Rectangle {
+        x: 12px;
+        y: 30px;
+        width: 45px;
+        height: 30px;
+        background: scheme.color;
+        border-width: ApplicationStyle.border-thin;
+        border-color: scheme.border;
+        border-radius: ApplicationStyle.radius-sm;
+
+        Text {
+            width: 100%;
+            height: 100%;
+            text: "Abc";
+            font-size: ApplicationStyle.font-size-sm;
+            color: scheme.text;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+
+    // Color label
+    Text {
+        x: 12px;
+        y: 60px;
+        width: 45px;
+        text: "Color";
+        font-size: ApplicationStyle.font-size-xs;
+        color: ApplicationStyle.text-tertiary;
+        horizontal-alignment: center;
+    }
+
+    // Shade preview box
+    Rectangle {
+        x: 63px;
+        y: 30px;
+        width: 45px;
+        height: 30px;
+        background: scheme.shade;
+        border-width: ApplicationStyle.border-thin;
+        border-color: scheme.border;
+        border-radius: ApplicationStyle.radius-sm;
+    }
+
+    // Shade label
+    Text {
+        x: 63px;
+        y: 60px;
+        width: 45px;
+        text: "Shade";
+        font-size: ApplicationStyle.font-size-xs;
+        color: ApplicationStyle.text-tertiary;
+        horizontal-alignment: center;
+    }
+}

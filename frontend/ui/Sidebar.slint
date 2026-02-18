@@ -1,0 +1,52 @@
+import { Button, VerticalBox } from "std-widgets.slint";
+
+export component Sidebar inherits Rectangle {
+    in-out property <bool> collapsed: true;
+    callback reset();
+    callback save-png();
+    callback save-svg();
+    
+    width: collapsed ? 50px : 250px;
+    background: #2c3e50;
+    
+    animate width {
+        duration: 300ms;
+        easing: ease-in-out;
+    }
+    
+    VerticalBox {
+        padding: 10px;
+        alignment: start;
+        
+        Button {
+            text: collapsed ? "☰" : "✕";
+            clicked => { collapsed = false }
+        }
+        
+        if !collapsed: VerticalBox {
+            spacing: 20px;
+            
+            Text {
+                text: "Brick Creator";
+                font-size: 20px;
+                font-weight: 700;
+                color: #ffffff;
+            }
+            
+            Button {
+                text: "Reset";
+                clicked => { root.reset(); }
+            }
+            
+            Button {
+                text: "💾 Save PNG";
+                clicked => { root.save-png(); }
+            }
+            
+            Button {
+                text: "📄 Save SVG";
+                clicked => { root.save-svg(); }
+            }
+        }
+    }
+}

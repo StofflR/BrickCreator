@@ -1,0 +1,91 @@
+import {
+    VerticalBox,
+    HorizontalBox,
+    GridBox,
+} from "std-widgets.slint";
+import { BrickTypeInfo } from "components/items/BrickTypeItem.slint";
+import { ColorSchemeInfo } from "components/items/ColorItem.slint";
+import { Sidebar } from "Sidebar.slint";
+import { BrickPreview } from "BrickPreview.slint";
+import { ContentInput } from "ContentInput.slint";
+import {
+    BrickTypeSelection,
+} from "selections/BrickTypeSelection.slint";
+import {
+    ColorSchemeSelection,
+} from "selections/ColorSchemeSelection.slint";
+import { BrickGlobals } from "@globals";
+
+export { BrickGlobals }
+
+export component MainWindow inherits Window {
+    title: "Brick Creator";
+    preferred-width: 1200px;
+    preferred-height: 800px;
+    
+    // Properties
+    in-out property <bool> sidebar-collapsed: true;
+    in-out property <int> selected-brick-type: 0;
+    in-out property <int> selected-color-scheme: 0;
+    in-out property <string> brick-content: "";
+    in-out property <[BrickTypeInfo]> brick-types;
+    in-out property <[ColorSchemeInfo]> color-schemes;
+    
+    // Callbacks
+    callback reset();
+
+    HorizontalBox {
+
+        Sidebar {
+            collapsed: sidebar-collapsed;
+            reset => root.reset();
+            save-png => {
+                BrickGlobals.save-as-png(
+                    root.selected-brick-type,
+                    root.brick-content,
+                    root.selected-color-scheme,
+                    brick-preview.scroll-x,
+                    brick-preview.scroll-y,
+                    1920
+                );
+            }
+            save-svg => {
+                BrickGlobals.save-as-svg(
+                    root.selected-brick-type,
+                    root.brick-content,
+                    root.selected-color-scheme,
+                    brick-preview.scroll-x,
+                    brick-preview.scroll-y
+                );
+            }
+        }
+
+        VerticalBox {
+            padding: 20px;
+            spacing: 20px;
+            brick-preview := BrickPreview {
+                brick-types <=> brick-types;
+                color-schemes <=> color-schemes;
+                selected-brick-type <=> root.selected-brick-type;
+                selected-color-scheme <=> root.selected-color-scheme;
+                brick-content <=> root.brick-content;
+            }
+
+            ContentInput {
+                brick-content <=> root.brick-content;
+            }
+
+            HorizontalBox {
+                BrickTypeSelection {
+                    brick-types <=> root.brick-types;
+                    selected-brick-type <=> root.selected-brick-type;
+                }
+
+                ColorSchemeSelection {
+                    color-schemes <=> root.color-schemes;
+                    selected-color-scheme <=> root.selected-color-scheme;
+                }
+            }
+        }
+    }
+}

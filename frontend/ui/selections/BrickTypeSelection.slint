@@ -1,0 +1,23 @@
+import { GridBox } from "std-widgets.slint";
+import { BrickTypeItem, BrickTypeInfo } from "../components/items/BrickTypeItem.slint";
+import { BaseSelection } from "../components/BaseSelection.slint";
+import { ApplicationStyle } from "../ApplicationStyle.slint";
+
+export component BrickTypeSelection inherits BaseSelection {
+    // Properties
+    in-out property <[BrickTypeInfo]> brick-types;
+    in-out property <int> selected-brick-type;
+    title: "Brick Types";
+    GridBox {
+        spacing: ApplicationStyle.spacing-lg;
+        for brick-type[idx] in brick-types: BrickTypeItem {
+            brick-type: brick-type;
+            is-selected: idx == selected-brick-type;
+            clicked => {
+                selected-brick-type = idx;
+            }
+            col: mod(idx, root.columns);
+            row: floor(idx / root.columns);
+        }
+    }
+}

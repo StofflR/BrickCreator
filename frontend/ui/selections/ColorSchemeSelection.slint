@@ -1,0 +1,23 @@
+import { GridBox } from "std-widgets.slint";
+import { ColorItem, ColorSchemeInfo } from "../components/items/ColorItem.slint";
+import { BaseSelection } from "../components/BaseSelection.slint";
+import { ApplicationStyle } from "../ApplicationStyle.slint";
+
+export component ColorSchemeSelection inherits BaseSelection {
+    // Properties
+    in-out property <[ColorSchemeInfo]> color-schemes;
+    in-out property <int> selected-color-scheme;
+    title: "Color Schemes";
+    GridBox {
+        spacing: ApplicationStyle.spacing-lg;
+        for scheme[idx] in color-schemes: ColorItem {
+            scheme: scheme;
+            is-selected: idx == selected-color-scheme;
+            clicked => {
+                selected-color-scheme = idx;
+            }
+            col: mod(idx, root.columns);
+            row: floor(idx / root.columns);
+        }
+    }
+}

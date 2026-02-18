@@ -1,0 +1,29 @@
+import { VerticalBox } from "std-widgets.slint";
+import { BaseCard } from "../BaseCard.slint";
+import { ApplicationStyle } from "../../ApplicationStyle.slint";
+
+export struct BrickTypeInfo {
+    id: int,
+    name: string,
+    description: string,
+}
+
+export component BrickTypeItem inherits BaseCard {
+    in property <BrickTypeInfo> brick-type;
+    
+    VerticalBox {
+        width: 100%;
+        height: 100%;
+        padding: ApplicationStyle.spacing-lg;
+        spacing: ApplicationStyle.spacing-sm;
+        
+        Text {
+            text: brick-type.name;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+            font-weight: ApplicationStyle.font-weight-bold;
+            font-size: ApplicationStyle.font-size-lg;
+            color: root.is-selected ? ApplicationStyle.text-on-primary : ApplicationStyle.text-primary;
+        }
+    }
+}

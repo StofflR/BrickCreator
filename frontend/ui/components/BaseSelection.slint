@@ -1,0 +1,22 @@
+import { VerticalBox, ScrollView } from "std-widgets.slint";
+import { ApplicationStyle } from "../ApplicationStyle.slint";
+
+// Base component for grid-based selection lists
+export component BaseSelection inherits ScrollView {
+    in property <string> title: "Selection";
+    in property <int> columns: max(root.width / (ApplicationStyle.card-width + ApplicationStyle.spacing-lg), 1);
+
+    preferred-height: ApplicationStyle.selection-height;
+    max-height: ApplicationStyle.selection-height;
+    VerticalBox {
+        spacing: ApplicationStyle.spacing-lg;
+        padding: ApplicationStyle.spacing-sm;
+        Text {
+            text: root.title;
+            font-size: ApplicationStyle.font-size-xl;
+            font-weight: ApplicationStyle.font-weight-bold;
+        }
+
+        @children
+    }
+}

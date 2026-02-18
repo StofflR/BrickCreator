@@ -1,0 +1,14 @@
+// Global singleton for brick-related callbacks and state
+export global BrickGlobals {
+    // Global callback for updating brick preview
+    // Parameters: brick_id, content, color_id, target_width, scroll_x (0-1), scroll_y (0-1)
+    pure callback update-brick-preview(int, string, int, length, float, float) -> image;
+    
+    // Save brick as PNG
+    // Parameters: brick_id, content, color_id, scroll_x, scroll_y, width
+    callback save-as-png(int, string, int, float, float, int) -> bool;
+    
+    // Save brick as SVG
+    // Parameters: brick_id, content, color_id, scroll_x, scroll_y
+    callback save-as-svg(int, string, int, float, float) -> bool;
+}

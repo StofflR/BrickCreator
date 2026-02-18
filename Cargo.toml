@@ -1,0 +1,12 @@
+[workspace]
+resolver = "3"
+members = [
+    "frontend",
+    "shared",
+]
+
+[workspace.lints.clippy]
+   all = "warn"
+   pedantic = "warn"
+   nursery = "warn"
+   cargo = "warn"

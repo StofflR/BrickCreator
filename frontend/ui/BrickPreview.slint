@@ -1,0 +1,63 @@
+import { GridBox, Slider } from "std-widgets.slint";
+import { BrickTypeInfo } from "components/items/BrickTypeItem.slint";
+import { ColorSchemeInfo } from "components/items/ColorItem.slint";
+import { BrickGlobals } from "@globals";
+import { ApplicationStyle } from "ApplicationStyle.slint";
+
+export component BrickPreview inherits Rectangle {
+    // Properties
+    in-out property <image> brick-preview-image;
+    in-out property <[BrickTypeInfo]> brick-types;
+    in-out property <[ColorSchemeInfo]> color-schemes;
+    in-out property <int> selected-brick-type;
+    in-out property <int> selected-color-scheme;
+    in-out property <string> brick-content;
+    in-out property <float> scroll-x: 0.1;
+    in-out property <float> scroll-y: 0.2;
+    preferred-height: 300px;
+    max-height: 300px;
+    background: #ffffff;
+    border-radius: 10px;
+    border-width: 2px;
+    border-color: #ddd;
+    GridBox {
+        padding: ApplicationStyle.spacing-lg;
+        spacing: ApplicationStyle.spacing-lg;
+        
+        // Image in main area (row 0, col 0)
+        Image {
+            row: 0;
+            col: 0;
+            source: BrickGlobals.update-brick-preview(
+                    root.selected-brick-type,
+                    root.brick-content,
+                    root.selected-color-scheme,
+                    1920px,
+                    root.scroll-x,
+                    root.scroll-y);
+            image-fit: contain;
+        }
+        
+        // Vertical slider on right (row 0, col 1)
+        Slider {
+            row: 0;
+            col: 1;
+            orientation: vertical;
+            minimum: 1;
+            maximum: 0;
+            value <=> root.scroll-y;
+            width: 30px;
+        }
+        
+        // Horizontal slider on bottom (row 1, col 0)
+        Slider {
+            row: 1;
+            col: 0;
+            orientation: horizontal;
+            minimum: 0;
+            maximum: 1;
+            value <=> root.scroll-x;
+            height: 30px;
+        }
+    }
+}
