@@ -1,0 +1,85 @@
+.tutorial-view {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    min-width: 0;
+}
+
+/* ── Toolbar & brick-controls rows ─────────────────────────── */
+
+.tutorial-view__toolbar,
+.tutorial-view__brick-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ── Draggable brick list ──────────────────────────────────── */
+
+.tutorial-view__brick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+    max-height: 480px;
+    padding: 2px;
+}
+
+.tutorial-view__brick-item + .tutorial-view__brick-item {
+    margin-top: -2.5%;
+}
+
+.tutorial-view__brick-item {
+    border: 2px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.15s;
+    position: relative;
+    margin-left: -4px;
+    margin-right: -4px;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 2%;
+    margin-bottom: 2%;
+}
+
+.tutorial-view__brick-item:hover {
+    border-color: var(--color-border);
+}
+
+.tutorial-view__brick-item--selected {
+    border-color: var(--color-accent);
+}
+
+.tutorial-view__brick-item[draggable="true"] {
+    cursor: grab;
+}
+
+.tutorial-view__brick-item[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+/* ── Preview mode ──────────────────────────────────────────── */
+
+.tutorial-view__preview {
+    overflow-y: auto;
+    max-height: 480px;
+}
+
+.tutorial-view__preview-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: var(--radius);
+}
+
+.tutorial-view__empty {
+    color: var(--color-text-muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 24px 0;
+}

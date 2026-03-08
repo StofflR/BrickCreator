@@ -1,0 +1,15 @@
+/* ── BrickTypeView ───────────────────────────────────────── */
+
+.brick-type-view {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* ── ColorView ───────────────────────────────────────────── */
+
+.color-view {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}

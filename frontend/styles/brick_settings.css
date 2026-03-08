@@ -1,0 +1,66 @@
+.brick-settings-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+    min-width: 0;
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* ── Content group: textarea + buttons side by side ───────── */
+
+.brick-settings-wrap > .editor-group:first-child {
+    flex: 0 0 auto;
+    overflow: hidden;
+}
+
+.brick-settings-wrap > .editor-group:first-child > .editor-group__content {
+    flex: 0 0 auto;
+    overflow: hidden;
+}
+
+.brick-settings-wrap > .editor-group > .editor-group__content {
+    flex-direction: row;
+    gap: var(--gap);
+    align-items: stretch;
+}
+
+.brick-settings__content-input {
+    flex: 1 1 0;
+    min-height: 8lh;
+    padding: 6px 10px;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    color: var(--color-text);
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    resize: none;
+    field-sizing: content;
+}
+
+.brick-settings__content-input:focus {
+    border-color: var(--color-accent);
+}
+
+.brick-settings__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* ── Bottom: colors + types in one row ────────────────────── */
+
+.brick-settings__bottom {
+    display: flex;
+    flex-direction: row;
+    gap: var(--gap);
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+.brick-settings__bottom .editor-group__content {
+    overflow-y: auto;
+}
