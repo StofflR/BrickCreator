@@ -23,7 +23,8 @@ where
     let mut serialized = serializer.serialize_struct("Brick", 5)?;
     serialized.serialize_field("brick_type", &brick_type)?;
     serialized.serialize_field("content", &brick.content)?;
-    serialized.serialize_field("color_scheme", &brick.color_scheme.name)?;
+    let color_scheme = (brick.color_scheme.color.clone(), brick.color_scheme.shade.clone(), brick.color_scheme.border.clone(), brick.color_scheme.text.clone());
+    serialized.serialize_field("color_scheme", &color_scheme)?;
     serialized.serialize_field("offset", &brick.offset)?;
     serialized.serialize_field("scale", &(brick.scale.x, brick.scale.y))?;
     serialized.end()

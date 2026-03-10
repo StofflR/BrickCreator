@@ -17,16 +17,9 @@ use crate::types::BrickType;
 struct BrickData {
     brick_type: BrickType,
     content: String,
-    color_scheme: String,
+    color_scheme: (String, String, String, String), // (color, shade, border, text)
     offset: (f32, f32),
     scale: (f32, f32),
-}
-
-fn color_scheme_from_name(name: &str) -> Option<ColorScheme> {
-    ALL_COLOR_SCHEMES
-        .iter()
-        .find(|scheme| scheme.name == name)
-        .cloned()
 }
 
 pub fn deserialize_brick_type<'de, D>(deserializer: D) -> Result<BrickType, D::Error>
@@ -53,12 +46,16 @@ where
         )));
     }
 
-    let color_scheme = color_scheme_from_name(&data.color_scheme)
-        .ok_or_else(|| D::Error::custom(format!("Unknown color_scheme '{}'", data.color_scheme)))?;
-
     Ok(BaseBrick {
         content: data.content,
-        color_scheme,
+        color_scheme: ColorScheme {
+            name: get_name_from_color_scheme(&data.color_scheme)
+                .unwrap_or_else(|| "Custom".to_string()),
+            color: data.color_scheme.0,
+            shade: data.color_scheme.1,
+            border: data.color_scheme.2,
+            text: data.color_scheme.3,
+        }, // Convert tuple to ColorScheme
         offset: data.offset,
         scale: Scale {
             x: data.scale.0,
@@ -133,6 +130,22 @@ impl<'de> Deserialize<'de> for BrickH3Base {
     }
 }
 
+pub fn get_name_from_color_scheme(
+    color_scheme: &(String, String, String, String),
+) -> Option<String> {
+    ALL_COLOR_SCHEMES.iter().find_map(|scheme| {
+        if scheme.color == color_scheme.0
+            && scheme.shade == color_scheme.1
+            && scheme.border == color_scheme.2
+            && scheme.text == color_scheme.3
+        {
+            Some(scheme.name.clone())
+        } else {
+            None
+        }
+    })
+}
+
 impl<'de> Deserialize<'de> for Box<dyn BrickRenderable> {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
@@ -140,13 +153,17 @@ impl<'de> Deserialize<'de> for Box<dyn BrickRenderable> {
     {
         let data = BrickData::deserialize(deserializer)?;
 
-        let color_scheme = color_scheme_from_name(&data.color_scheme).ok_or_else(|| {
-            D::Error::custom(format!("Unknown color_scheme '{}'", data.color_scheme))
-        })?;
-
+        let color_scheme =
+            get_name_from_color_scheme(&data.color_scheme).unwrap_or("Custom".to_string());
         let base = BaseBrick {
             content: data.content,
-            color_scheme,
+            color_scheme: ColorScheme {
+                name: color_scheme,
+                color: data.color_scheme.0,
+                shade: data.color_scheme.1,
+                border: data.color_scheme.2,
+                text: data.color_scheme.3,
+            },
             offset: data.offset,
             scale: Scale {
                 x: data.scale.0,
