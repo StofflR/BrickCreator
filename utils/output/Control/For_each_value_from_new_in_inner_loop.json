@@ -1,0 +1,18 @@
+{
+  "content": "For each value from\n|new ...|\nin\n|inner loop|",
+  "brick_type": "H2Base",
+  "color_scheme": [
+    "#f99761",
+    "#a86d45",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.06462156177390495
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}
