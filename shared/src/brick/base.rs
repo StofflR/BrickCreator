@@ -7,6 +7,23 @@ const DROP_MARKER: &str = "*";
 const DROP_SCALE: f32 = 0.8;
 pub const DEFAULT_X_OFFSET: f32 = 0.11;
 
+// escaping: ensure that the symbol in the brick is read as text
+fn escape_xml_text(text: &str) -> String {
+    let mut escaped = String::with_capacity(text.len());
+    for ch in text.chars() {
+        match ch {
+            '&' => escaped.push_str("&amp;"),
+            '<' => escaped.push_str("&lt;"),
+            '>' => escaped.push_str("&gt;"),
+            '"' => escaped.push_str("&quot;"),
+            '\'' => escaped.push_str("&apos;"),
+            c if c < '\u{20}' && c != '\n' && c != '\r' && c != '\t' => {}
+            _ => escaped.push(ch),
+        }
+    }
+    escaped
+}
+
 fn font_size_from_scale(scale: &Scale) -> f32 {
     (scale.y + scale.x) / 2.0
 }
@@ -84,12 +101,14 @@ fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
 }
 
 fn handle_text(content: &str, color_scheme: &ColorScheme, font_size: f32) -> String {
+    let content = escape_xml_text(content);
     format!(
         "<text xml:space=\"preserve\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text>",
         color_scheme.text, font_size, content
     )
 }
 fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32) -> String {
+    let content = escape_xml_text(content);
     format!(
         "<text xml:space=\"preserve\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\" transform=\"scale({})\">{}</text>",
         color_scheme.text, font_size, DROP_SCALE, content
@@ -100,6 +119,7 @@ fn handle_variable(content: &str, brick: &BaseBrick) -> String {
     let color_scheme = &brick.color_scheme;
     let font_size = font_size_from_scale(&brick.scale);
     let advance = advance(content, &brick.scale);
+    let content = escape_xml_text(content);
     format!(
         "<g><text xml:space=\"preserve\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text><line stroke=\"{}\" x1=\"0\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/></g>",
         color_scheme.text, font_size, content, color_scheme.text, y, advance, y

@@ -13,7 +13,13 @@ use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
+use crate::interfaces::catalog;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
+#[cfg(target_arch = "wasm32")]
+use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -29,6 +35,8 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
     let bricks = props.tutorial.get_brick_state_list();
     let preview_toggle = use_state(|| false);
     let preview = *preview_toggle.clone();
+    let all_bricks_url = use_state(|| Option::<String>::None);
+    let all_bricks_rendering = use_state(|| false);
     let preview_data = if preview {
         props.tutorial.get_png(800).ok()
     } else {
@@ -110,8 +118,125 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
         })
     };
 
+    let on_export_all_bricks_png = {
+        let all_bricks_url = all_bricks_url.clone();
+        let all_bricks_rendering = all_bricks_rendering.clone();
+        Callback::from(move |_: MouseEvent| {
+            if *all_bricks_rendering {
+                return;
+            }
+
+            if let Some(url) = (*all_bricks_url).clone() {
+                let Some(window) = web_sys::window() else {
+                    web_sys::console::error_1(&"All bricks download error: no window".into());
+                    return;
+                };
+                let Some(document) = window.document() else {
+                    web_sys::console::error_1(&"All bricks download error: no document".into());
+                    return;
+                };
+
+                let anchor: HtmlAnchorElement = match document
+                    .create_element("a")
+                    .ok()
+                    .and_then(|e| e.dyn_into().ok())
+                {
+                    Some(a) => a,
+                    None => {
+                        web_sys::console::error_1(
+                            &"All bricks download error: failed to create anchor".into(),
+                        );
+                        return;
+                    }
+                };
+
+                anchor.set_href(&url);
+                anchor.set_download("all_bricks.png");
+                anchor.set_attribute("style", "display:none").ok();
+
+                if let Some(body) = document.body() {
+                    let _ = body.append_child(&anchor);
+                    anchor.click();
+                    let _ = body.remove_child(&anchor);
+                } else {
+                    anchor.click();
+                }
+
+                return;
+            }
+
+            all_bricks_rendering.set(true);
+            match catalog::render_all_bricks_png_bytes(300) {
+                Ok(data) => {
+                    let uint8 = js_sys::Uint8Array::from(data.as_slice());
+                    let parts = js_sys::Array::new();
+                    parts.push(&uint8);
+
+                    let mut opts = BlobPropertyBag::new();
+                    #[allow(deprecated)]
+                    opts.type_("image/png");
+                    let blob =
+                        match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
+                            Ok(b) => b,
+                            Err(e) => {
+                                web_sys::console::error_1(
+                                    &format!("All bricks blob error: {e:?}").into(),
+                                );
+                                all_bricks_rendering.set(false);
+                                return;
+                            }
+                        };
+
+                    match Url::create_object_url_with_blob(&blob) {
+                        Ok(url) => {
+                            let url_for_state = url.clone();
+                            all_bricks_url.set(Some(url_for_state));
+                            if let Some(window) = web_sys::window()
+                                && let Some(document) = window.document()
+                            {
+                                let anchor: Option<HtmlAnchorElement> = document
+                                    .create_element("a")
+                                    .ok()
+                                    .and_then(|e| e.dyn_into().ok());
+                                if let Some(anchor) = anchor {
+                                    anchor.set_href(&url);
+                                    anchor.set_download("all_bricks.png");
+                                    anchor.set_attribute("style", "display:none").ok();
+                                    if let Some(body) = document.body() {
+                                        let _ = body.append_child(&anchor);
+                                        anchor.click();
+                                        let _ = body.remove_child(&anchor);
+                                    } else {
+                                        anchor.click();
+                                    }
+                                    web_sys::console::log_1(
+                                        &"ALL bricks PNG download attempted. If nothing happened, click again.".into(),
+                                    );
+                                } else {
+                                    web_sys::console::log_1(
+                                        &"ALL bricks PNG ready — click again to download.".into(),
+                                    );
+                                }
+                            } else {
+                                web_sys::console::log_1(
+                                    &"ALL bricks PNG ready — click again to download.".into(),
+                                );
+                            }
+                        }
+                        Err(e) => web_sys::console::error_1(
+                            &format!("All bricks URL error: {e:?}").into(),
+                        ),
+                    }
+                }
+                Err(e) => web_sys::console::error_1(&format!("All bricks render error: {e}").into()),
+            }
+            all_bricks_rendering.set(false);
+        })
+    };
+
     let has_selection = props.tutorial.selected_index.is_some();
     let selected_index = props.tutorial.selected_index;
+    let all_bricks_ready = (*all_bricks_url).is_some();
 
     html! {
         <EditorGroup title="Tutorial Editor">
@@ -124,6 +249,9 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                     {on_import_json}
                     {on_export_json}
                     {on_save_png}
+                    {on_export_all_bricks_png}
+                    {all_bricks_ready}
+                    all_bricks_rendering={*all_bricks_rendering}
                     {has_selection}
                     show_preview={preview}
                 />
