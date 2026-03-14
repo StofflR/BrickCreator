@@ -56,11 +56,11 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
 
     // tooltip message
     let all_bricks_title = if props.all_bricks_rendering {
-        "Rendering ALL bricks…" 
+        "Rendering ALL bricks…"
     } else if props.all_bricks_ready {
-        "Download ALL bricks PNG (click again if needed)"
+        "Download ALL bricks ZIP (click again if needed)"
     } else {
-        "Render ALL bricks PNG"
+        "Render ALL bricks ZIP"
     };
 
     html! {

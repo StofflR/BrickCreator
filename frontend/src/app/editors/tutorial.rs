@@ -151,7 +151,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                 };
 
                 anchor.set_href(&url);
-                anchor.set_download("all_bricks.png");
+                anchor.set_download("all_bricks.zip");
                 anchor.set_attribute("style", "display:none").ok();
 
                 if let Some(body) = document.body() {
@@ -166,7 +166,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
             }
 
             all_bricks_rendering.set(true);
-            match catalog::render_all_bricks_png_bytes(300) {
+            match catalog::render_all_bricks_zip_bytes(300) {
                 Ok(data) => {
                     let uint8 = js_sys::Uint8Array::from(data.as_slice());
                     let parts = js_sys::Array::new();
@@ -174,7 +174,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
 
                     let mut opts = BlobPropertyBag::new();
                     #[allow(deprecated)]
-                    opts.type_("image/png");
+                    opts.type_("application/zip");
                     let blob =
                         match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
                             Ok(b) => b,
@@ -200,7 +200,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                                     .and_then(|e| e.dyn_into().ok());
                                 if let Some(anchor) = anchor {
                                     anchor.set_href(&url);
-                                    anchor.set_download("all_bricks.png");
+                                    anchor.set_download("all_bricks.zip");
                                     anchor.set_attribute("style", "display:none").ok();
                                     if let Some(body) = document.body() {
                                         let _ = body.append_child(&anchor);
@@ -210,16 +210,16 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                                         anchor.click();
                                     }
                                     web_sys::console::log_1(
-                                        &"ALL bricks PNG download attempted. If nothing happened, click again.".into(),
+                                        &"ALL bricks ZIP download attempted. If nothing happened, click again.".into(),
                                     );
                                 } else {
                                     web_sys::console::log_1(
-                                        &"ALL bricks PNG ready — click again to download.".into(),
+                                        &"ALL bricks ZIP ready — click again to download.".into(),
                                     );
                                 }
                             } else {
                                 web_sys::console::log_1(
-                                    &"ALL bricks PNG ready — click again to download.".into(),
+                                    &"ALL bricks ZIP ready — click again to download.".into(),
                                 );
                             }
                         }
