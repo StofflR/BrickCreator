@@ -154,8 +154,7 @@ def summarize_brick_sizes(
 ) -> dict[str, dict[str, object]]:
     """
     For each density, compute brick reference sizes:
-      h1_base, h2_base, h3_base, h1_control, h2_control,
-      and an inferred h0_control (since there is typically no PNG).
+      h1_base, h2_base, h3_base, h1_control, h2_control
     """
     summary: dict[str, dict[str, object]] = {}
     for density, files in parsed.items():
@@ -170,20 +169,6 @@ def summarize_brick_sizes(
             files, ["brick_control_2h.9.png", "brick_control_gold_2h.9.png"]
         )
 
-        inferred_h0: dict[str, object] | None = None
-        if h1_control is not None and h2_control is not None:
-            (w1, h1) = h1_control[1]
-            (w2, h2) = h2_control[1]
-            dh = h2 - h1
-            inferred_h0 = {
-                "size": (w1, h1 - dh),
-                "method": "h0 = h1 - (h2 - h1)",
-                "from": {
-                    "h1": {"file": h1_control[0], "size": (w1, h1)},
-                    "h2": {"file": h2_control[0], "size": (w2, h2)},
-                },
-            }
-
         def pack(picked: tuple[str, tuple[int, int]] | None) -> dict[str, object] | None:
             if picked is None:
                 return None
@@ -196,7 +181,6 @@ def summarize_brick_sizes(
             "h3_base": pack(h3_base),
             "h1_control": pack(h1_control),
             "h2_control": pack(h2_control),
-            "h0_control_inferred": inferred_h0,
         }
     return summary
 
@@ -342,14 +326,6 @@ def main() -> int:
                 print(f"  {key}: —")
                 continue
             print(f"  {key}: {_format_size(entry.get('size'))} ({entry.get('file')})")
-
-        inferred = s.get("h0_control_inferred")
-        if isinstance(inferred, dict):
-            print(
-                f"  h0_control (inferred): {_format_size(inferred.get('size'))} [{inferred.get('method')}]"
-            )
-        else:
-            print("  h0_control (inferred): —")
 
     return 0
 

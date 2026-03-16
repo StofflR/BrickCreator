@@ -1,5 +1,5 @@
 use shared::brick::{
-    h0::BrickH0, h1_base::BrickH1Base, h1_control::BrickH1Control, h2_base::BrickH2Base,
+    h1_base::BrickH1Base, h1_control::BrickH1Control, h2_base::BrickH2Base,
     h2_control::BrickH2Control, h3_base::BrickH3Base,
 };
 use shared::color::ALL_COLOR_SCHEMES;
@@ -57,7 +57,6 @@ struct DensitySpec {
     h3_base: Size,
     h1_control: Size,
     h2_control: Size,
-    h0_control: Size,
 }
 
 impl DensitySpec {
@@ -68,7 +67,6 @@ impl DensitySpec {
             BrickKind::H3Base => self.h3_base,
             BrickKind::H1Control => self.h1_control,
             BrickKind::H2Control => self.h2_control,
-            BrickKind::H0Control => self.h0_control,
         }
     }
 }
@@ -98,10 +96,6 @@ const DENSITIES: &[DensitySpec] = &[
             width: 156,
             height: 68,
         },
-        h0_control: Size {
-            width: 156,
-            height: 30,
-        },
     },
     DensitySpec {
         name: "mdpi",
@@ -124,10 +118,6 @@ const DENSITIES: &[DensitySpec] = &[
         h2_control: Size {
             width: 208,
             height: 90,
-        },
-        h0_control: Size {
-            width: 208,
-            height: 38,
         },
     },
     DensitySpec {
@@ -152,10 +142,6 @@ const DENSITIES: &[DensitySpec] = &[
             width: 311,
             height: 134,
         },
-        h0_control: Size {
-            width: 311,
-            height: 56, // h1 - (h2 - h1)
-        },
     },
     DensitySpec {
         name: "xhdpi",
@@ -178,10 +164,6 @@ const DENSITIES: &[DensitySpec] = &[
         h2_control: Size {
             width: 413,
             height: 208,
-        },
-        h0_control: Size {
-            width: 414,
-            height: 104,
         },
     },
     DensitySpec {
@@ -206,10 +188,6 @@ const DENSITIES: &[DensitySpec] = &[
             width: 620,
             height: 266,
         },
-        h0_control: Size {
-            width: 620,
-            height: 110,
-        },
     },
 ];
 
@@ -220,7 +198,6 @@ enum BrickKind {
     H3Base,
     H1Control,
     H2Control,
-    H0Control,
 }
 
 const BRICK_KINDS: &[BrickKind] = &[
@@ -229,7 +206,6 @@ const BRICK_KINDS: &[BrickKind] = &[
     BrickKind::H3Base,
     BrickKind::H1Control,
     BrickKind::H2Control,
-    BrickKind::H0Control,
 ];
 
 impl BrickKind {
@@ -240,7 +216,6 @@ impl BrickKind {
             BrickKind::H3Base => "h3_base",
             BrickKind::H1Control => "h1_control",
             BrickKind::H2Control => "h2_control",
-            BrickKind::H0Control => "h0_control",
         }
     }
 
@@ -268,11 +243,6 @@ impl BrickKind {
             }
             BrickKind::H2Control => {
                 let mut brick = BrickH2Control::default();
-                brick.base.color_scheme = scheme;
-                brick.to_svg()
-            }
-            BrickKind::H0Control => {
-                let mut brick = BrickH0::default();
                 brick.base.color_scheme = scheme;
                 brick.to_svg()
             }
