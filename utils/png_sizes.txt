@@ -1,5 +1,5 @@
 
-Ordner: /home/dora/stoffl/drawable-hdp 
+Ordner: /home/dora/stoffl/drawable-hdpi
 brick_1h_darkblue.9.png 81x66
 brick_1h_darkgreen.9.png 83x68
 brick_1h_gold.9.png 83x68

@@ -58,11 +58,7 @@ def _density_key_from_folder(folder: str) -> str:
     if base == "drawable":
         return "drawable"
     if base.startswith("drawable-"):
-        key = base.removeprefix("drawable-")
-        # tolerate common typo seen in exported reference folders
-        if key == "hdp":
-            return "hdpi"
-        return key
+        return base.removeprefix("drawable-")
     return base
 
 
