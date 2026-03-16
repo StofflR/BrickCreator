@@ -21,6 +21,8 @@ const ICON_FILE_JSON: &str = include_str!("../../res/file_json.svg");
 const ICON_FILE_PNG: &str = include_str!("../../res/file_png.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_DOWNLOAD: &str = include_str!("../../res/download.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_NINEPATCH: &str = include_str!("../../res/ninepatch_9.svg");
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -33,8 +35,11 @@ pub struct TutorialSettingsViewProps {
     pub on_export_json: Callback<MouseEvent>,
     pub on_save_png: Callback<MouseEvent>,
     pub on_export_all_bricks_png: Callback<MouseEvent>,
+    pub on_export_ninepatch_zip: Callback<MouseEvent>,
     pub all_bricks_ready: bool, // flag that shows that there is a finished blob-URL im state
     pub all_bricks_rendering: bool, // flag that disables export all button  
+    pub ninepatch_ready: bool,
+    pub ninepatch_rendering: bool,
     pub has_selection: bool,
     pub show_preview: bool,
 }
@@ -61,6 +66,14 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
         "Download ALL bricks ZIP (click again if needed)"
     } else {
         "Render ALL bricks ZIP"
+    };
+
+    let ninepatch_title = if props.ninepatch_rendering {
+        "Rendering 9-patch ZIP…"
+    } else if props.ninepatch_ready {
+        "Download 9-patch ZIP (click again if needed)"
+    } else {
+        "Render 9-patch ZIP"
     };
 
     html! {
@@ -107,6 +120,12 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
                 title={all_bricks_title}
                 onclick={props.on_export_all_bricks_png.clone()}
                 disabled={props.all_bricks_rendering}
+            />
+            <IconButton
+                icon={Html::from_html_unchecked(AttrValue::from(ICON_NINEPATCH))}
+                title={ninepatch_title}
+                onclick={props.on_export_ninepatch_zip.clone()}
+                disabled={props.ninepatch_rendering}
             />
         </div>
     }

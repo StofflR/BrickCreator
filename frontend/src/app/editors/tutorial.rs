@@ -15,6 +15,8 @@ use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::catalog;
 #[cfg(target_arch = "wasm32")]
+use crate::interfaces::ninepatch;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
@@ -37,6 +39,8 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
     let preview = *preview_toggle.clone();
     let all_bricks_url = use_state(|| Option::<String>::None);
     let all_bricks_rendering = use_state(|| false);
+    let ninepatch_url = use_state(|| Option::<String>::None);
+    let ninepatch_rendering = use_state(|| false);
     let preview_data = if preview {
         props.tutorial.get_png(800).ok()
     } else {
@@ -234,9 +238,126 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
         })
     };
 
+    let on_export_ninepatch_zip = {
+        let ninepatch_url = ninepatch_url.clone();
+        let ninepatch_rendering = ninepatch_rendering.clone();
+        Callback::from(move |_: MouseEvent| {
+            if *ninepatch_rendering {
+                return;
+            }
+
+            if let Some(url) = (*ninepatch_url).clone() {
+                let Some(window) = web_sys::window() else {
+                    web_sys::console::error_1(&"9-patch download error: no window".into());
+                    return;
+                };
+                let Some(document) = window.document() else {
+                    web_sys::console::error_1(&"9-patch download error: no document".into());
+                    return;
+                };
+
+                let anchor: HtmlAnchorElement = match document
+                    .create_element("a")
+                    .ok()
+                    .and_then(|e| e.dyn_into().ok())
+                {
+                    Some(a) => a,
+                    None => {
+                        web_sys::console::error_1(
+                            &"9-patch download error: failed to create anchor".into(),
+                        );
+                        return;
+                    }
+                };
+
+                anchor.set_href(&url);
+                anchor.set_download("ninepatch_bricks.zip");
+                anchor.set_attribute("style", "display:none").ok();
+
+                if let Some(body) = document.body() {
+                    let _ = body.append_child(&anchor);
+                    anchor.click();
+                    let _ = body.remove_child(&anchor);
+                } else {
+                    anchor.click();
+                }
+
+                return;
+            }
+
+            ninepatch_rendering.set(true);
+            match ninepatch::render_ninepatch_zip_bytes() {
+                Ok(data) => {
+                    let uint8 = js_sys::Uint8Array::from(data.as_slice());
+                    let parts = js_sys::Array::new();
+                    parts.push(&uint8);
+
+                    let mut opts = BlobPropertyBag::new();
+                    #[allow(deprecated)]
+                    opts.type_("application/zip");
+                    let blob =
+                        match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
+                            Ok(b) => b,
+                            Err(e) => {
+                                web_sys::console::error_1(
+                                    &format!("9-patch blob error: {e:?}").into(),
+                                );
+                                ninepatch_rendering.set(false);
+                                return;
+                            }
+                        };
+
+                    match Url::create_object_url_with_blob(&blob) {
+                        Ok(url) => {
+                            let url_for_state = url.clone();
+                            ninepatch_url.set(Some(url_for_state));
+                            if let Some(window) = web_sys::window()
+                                && let Some(document) = window.document()
+                            {
+                                let anchor: Option<HtmlAnchorElement> = document
+                                    .create_element("a")
+                                    .ok()
+                                    .and_then(|e| e.dyn_into().ok());
+                                if let Some(anchor) = anchor {
+                                    anchor.set_href(&url);
+                                    anchor.set_download("ninepatch_bricks.zip");
+                                    anchor.set_attribute("style", "display:none").ok();
+                                    if let Some(body) = document.body() {
+                                        let _ = body.append_child(&anchor);
+                                        anchor.click();
+                                        let _ = body.remove_child(&anchor);
+                                    } else {
+                                        anchor.click();
+                                    }
+                                    web_sys::console::log_1(
+                                        &"9-patch ZIP download attempted. If nothing happened, click again.".into(),
+                                    );
+                                } else {
+                                    web_sys::console::log_1(
+                                        &"9-patch ZIP ready — click again to download.".into(),
+                                    );
+                                }
+                            } else {
+                                web_sys::console::log_1(
+                                    &"9-patch ZIP ready — click again to download.".into(),
+                                );
+                            }
+                        }
+                        Err(e) => web_sys::console::error_1(
+                            &format!("9-patch URL error: {e:?}").into(),
+                        ),
+                    }
+                }
+                Err(e) => web_sys::console::error_1(&format!("9-patch render error: {e}").into()),
+            }
+            ninepatch_rendering.set(false);
+        })
+    };
+
     let has_selection = props.tutorial.selected_index.is_some();
     let selected_index = props.tutorial.selected_index;
     let all_bricks_ready = (*all_bricks_url).is_some();
+    let ninepatch_ready = (*ninepatch_url).is_some();
 
     html! {
         <EditorGroup title="Tutorial Editor">
@@ -250,8 +371,11 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                     {on_export_json}
                     {on_save_png}
                     {on_export_all_bricks_png}
+                    {on_export_ninepatch_zip}
                     {all_bricks_ready}
                     all_bricks_rendering={*all_bricks_rendering}
+                    {ninepatch_ready}
+                    ninepatch_rendering={*ninepatch_rendering}
                     {has_selection}
                     show_preview={preview}
                 />
