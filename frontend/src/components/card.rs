@@ -14,6 +14,8 @@ pub struct CardProps {
     #[prop_or_default]
     pub onclick: Callback<MouseEvent>,
     #[prop_or_default]
+    pub ondblclick: Callback<MouseEvent>,
+    #[prop_or_default]
     pub children: Children,
 }
 
@@ -28,7 +30,11 @@ pub fn card(props: &CardProps) -> Html {
     );
 
     html! {
-        <div class={card_class} onclick={props.onclick.clone()}>
+        <div
+            class={card_class}
+            onclick={props.onclick.clone()}
+            ondblclick={props.ondblclick.clone()}
+        >
             <h4 class="card-title">{props.title.clone()}</h4>
             <div class="card-content">
                 { for props.children.iter() }
