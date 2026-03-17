@@ -272,7 +272,7 @@ fn render_svg_with_padding(
             "Target too small for padding: {target_width}x{target_height} with padding={padding}"
         ));
     }
-    let inner_w = (target_width - pad2) as f32;
+    let _inner_w = (target_width - pad2) as f32;
     let inner_h = (target_height - pad2) as f32;
 
     let mut pixmap =
@@ -280,9 +280,10 @@ fn render_svg_with_padding(
             format!("Failed to create pixmap with {target_width}x{target_height}")
         })?;
 
-    let scale_x = inner_w / svg_width;
-    let scale_y = inner_h / svg_height;
-    let transform = tiny_skia::Transform::from_scale(scale_x, scale_y)
+    // Keep the brick's aspect ratio. If the rendered brick is wider than the target,
+    // it will be cropped on the right by the pixmap bounds (instead of being squashed).
+    let scale = inner_h / svg_height;
+    let transform = tiny_skia::Transform::from_scale(scale, scale)
         .post_translate(padding as f32, padding as f32);
 
     let mut pm = pixmap.as_mut();
