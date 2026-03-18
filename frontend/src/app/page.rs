@@ -23,6 +23,7 @@ fn app() -> Html {
                 <BrickEditor
                     brick={(*brick).clone()}
                     dispatcher={brick.dispatcher()}
+                    tutorial_dispatcher={tutorial.dispatcher()}
                 />
             </div>
             <Sidebar>

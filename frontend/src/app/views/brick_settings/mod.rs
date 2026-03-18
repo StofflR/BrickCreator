@@ -27,6 +27,7 @@ use yew::prelude::*;
 pub struct BrickSettingsViewProps {
     pub brick: BrickState,
     pub dispatcher: UseReducerDispatcher<BrickState>,
+    pub on_add_to_tutorial: Callback<MouseEvent>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -107,6 +108,7 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
             <ContentGroup
                 content={content_val}
                 on_content_input={on_content_input}
+                on_add_to_tutorial={props.on_add_to_tutorial.clone()}
                 on_import_json={on_import_json}
                 on_export_json={on_export_json}
                 on_save_svg={on_save_svg}

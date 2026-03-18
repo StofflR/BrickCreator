@@ -35,14 +35,6 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
         None
     };
 
-    let on_add = {
-        let dispatcher = props.tutorial_dispatcher.clone();
-        let brick = props.brick.clone();
-        Callback::from(move |_: MouseEvent| {
-            dispatcher.dispatch(TutorialAction::AddBrick(brick.clone()));
-        })
-    };
-
     let on_remove = {
         let dispatcher = props.tutorial_dispatcher.clone();
         Callback::from(move |_: MouseEvent| {
@@ -117,7 +109,6 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
         <EditorGroup title="Tutorial Editor">
             <div class="tutorial-view">
                 <TutorialSettingsView
-                    {on_add}
                     {on_remove}
                     {on_apply}
                     {on_toggle_preview}
