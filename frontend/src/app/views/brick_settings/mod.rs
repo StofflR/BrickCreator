@@ -60,6 +60,7 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
     let content_val = current.content.clone();
     let brick_type = props.brick.get_type();
     let color_name = current.color_scheme.name.clone();
+    let selected_color = current.color_scheme.clone();
 
     let on_import_json = {
         let dispatcher = props.dispatcher.clone();
@@ -121,6 +122,7 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
                 />
                 <TypesGroup
                     selected={brick_type}
+                    color_scheme={selected_color}
                     on_select={on_brick_type_select}
                 />
             </div>
