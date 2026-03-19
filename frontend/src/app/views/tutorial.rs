@@ -4,8 +4,15 @@ use crate::{
     components::drag_drop_list::{DragDropItem, DragDropList},
     interfaces::brick::BrickState,
 };
+
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+use web_sys::KeyboardEvent;
+
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::{closure::Closure, JsCast};
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -20,6 +27,56 @@ pub struct TutorialEditViewProps {
 #[cfg(target_arch = "wasm32")]
 #[function_component(TutorialEditView)]
 pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
+    // ── Tastatursteuerung ───────────────────────────────────────
+    {
+        let on_move = props.on_move.clone();
+        let selected_index = props.selected_index;
+        let len = props.bricks.len();
+
+        use_effect_with((selected_index, len), move |(selected_index, len)| {
+            let on_move = on_move.clone();
+            let selected_index = *selected_index;
+            let len = *len;
+
+            let handler = Closure::<dyn FnMut(_)>::new(move |event: KeyboardEvent| {
+                if let Some(i) = selected_index {
+                    match event.key().as_str() {
+                        "ArrowUp" => {
+                            if i > 0 {
+                                on_move.emit((i, i - 1));
+                            }
+                        }
+                        "ArrowDown" => {
+                            if i + 1 < len {
+                                on_move.emit((i, i + 1));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            });
+
+            let window = web_sys::window().unwrap();
+
+            window
+                .add_event_listener_with_callback(
+                    "keydown",
+                    handler.as_ref().unchecked_ref(),
+                )
+                .unwrap();
+
+            move || {
+                window
+                    .remove_event_listener_with_callback(
+                        "keydown",
+                        handler.as_ref().unchecked_ref(),
+                    )
+                    .unwrap();
+            }
+        });
+    }
+
+    // ── Render ─────────────────────────────────────────────────
     if props.bricks.is_empty() {
         html! {
             <div class="tutorial-view__empty">
@@ -37,11 +94,68 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                 item_class="tutorial-view__brick-item"
                 item_selected_class="tutorial-view__brick-item--selected"
             >
-                { for props.bricks.iter().map(|state| html_nested! {
-                    <DragDropItem>
-                        <BrickView brick={state.clone()} />
-                    </DragDropItem>
-                }) }
+                {
+                    for props.bricks.iter().enumerate().map(|(idx, state)| {
+                        let is_selected = Some(idx) == props.selected_index;
+
+                        html_nested! {
+                            <DragDropItem>
+                                <div class="brick-row">
+
+                                    // ── Pfeile links ───────────────────────
+                                    <div class="brick-controls">
+                                        {
+                                            if is_selected {
+                                                let len = props.bricks.len();
+                                                let on_move = props.on_move.clone();
+
+                                                html! {
+                                                    <>
+                                                        <button
+                                                            onclick={{
+                                                                let on_move = on_move.clone();
+                                                                move |event: MouseEvent| {
+                                                                    event.stop_propagation();
+                                                                    if idx > 0 {
+                                                                        on_move.emit((idx, idx - 1));
+                                                                    }
+                                                                }
+                                                            }}
+                                                            disabled={idx == 0}
+                                                        >
+                                                            { "↑" }
+                                                        </button>
+
+                                                        <button
+                                                            onclick={{
+                                                                let on_move = on_move.clone();
+                                                                move |event: MouseEvent| {
+                                                                    event.stop_propagation();
+                                                                    if idx + 1 < len {
+                                                                        on_move.emit((idx, idx + 1));
+                                                                    }
+                                                                }
+                                                            }}
+                                                            disabled={idx + 1 >= len}
+                                                        >
+                                                            { "↓" }
+                                                        </button>
+                                                    </>
+                                                }
+                                            } else {
+                                                html! {}
+                                            }
+                                        }
+                                    </div>
+
+                                    // ── Brick ─────────────────────────────
+                                    <BrickView brick={state.clone()} />
+
+                                </div>
+                            </DragDropItem>
+                        }
+                    })
+                }
             </DragDropList>
         }
     }
