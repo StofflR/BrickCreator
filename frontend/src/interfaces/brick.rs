@@ -34,6 +34,7 @@ pub enum StateAction {
     ChangeOffset(f32, f32),
     ChangeContent(String),
     LoadJson(String),
+    Set(BrickState),
 }
 
 impl Reducible for BrickState {
@@ -70,6 +71,7 @@ impl Reducible for BrickState {
                     self
                 }
             },
+            StateAction::Set(brick) => Rc::new(brick),
         }
     }
 }

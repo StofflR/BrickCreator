@@ -9,7 +9,7 @@ use crate::app::views::tutorial_settings::TutorialSettingsView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
-use crate::interfaces::brick::BrickState;
+use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::catalog;
 #[cfg(target_arch = "wasm32")]
@@ -29,6 +29,7 @@ use yew::prelude::*;
 #[derive(Properties, PartialEq)]
 pub struct TutorialEditorProps {
     pub brick: BrickState,
+    pub brick_dispatcher: UseReducerDispatcher<BrickState>,
     pub tutorial: TutorialViewState,
     pub tutorial_dispatcher: UseReducerDispatcher<TutorialViewState>,
 }
@@ -80,8 +81,13 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
 
     let on_select = {
         let dispatcher = props.tutorial_dispatcher.clone();
+        let brick_dispatcher = props.brick_dispatcher.clone();
+        let bricks = bricks.clone();
         Callback::from(move |index: usize| {
             dispatcher.dispatch(TutorialAction::Select(index));
+            if let Some(brick) = bricks.get(index) {
+                brick_dispatcher.dispatch(StateAction::Set(brick.clone()));
+            }
         })
     };
 
