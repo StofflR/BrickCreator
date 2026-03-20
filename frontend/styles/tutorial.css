@@ -83,3 +83,49 @@
     text-align: center;
     padding: 24px 0;
 }
+
+
+/* ── Move Bricks ──────────────────────────────────────────── */
+
+/* Brick-Row: Arrows left, Bricks right */
+.brick-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Column for arrows */
+.brick-controls {
+    display: flex;
+    flex-direction: column; 
+    justify-content: center;
+    gap: 2px; 
+}
+
+/* Pfeil-Buttons Styling */
+.brick-controls button {
+    display: block;
+    padding: 2px 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    background: var(--color-bg);
+    color: color-contrast(var(--color-bg) vs white, black);
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.brick-controls button:hover:not(:disabled) {
+    background: var(--color-accent-light);
+    border-color: var(--color-accent);
+}
+
+.brick-controls button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* BrickView takes space left */
+.brick-row > .brick-view {
+    flex: 1;
+}
