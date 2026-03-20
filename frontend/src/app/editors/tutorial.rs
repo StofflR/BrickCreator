@@ -19,6 +19,8 @@ use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
+use serde_json::Value;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
 #[cfg(target_arch = "wasm32")]
 use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
@@ -31,6 +33,41 @@ pub struct TutorialEditorProps {
     pub brick: BrickState,
     pub tutorial: TutorialViewState,
     pub tutorial_dispatcher: UseReducerDispatcher<TutorialViewState>,
+}
+
+#[cfg(target_arch = "wasm32")]
+fn parse_brick_value(value: Value) -> Result<BrickState, String> {
+    match value {
+        Value::String(text) => BrickState::from_json(&text),
+        other => {
+            let json = serde_json::to_string(&other).map_err(|e| e.to_string())?;
+            BrickState::from_json(&json)
+        }
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn parse_bricks_from_json(text: &str) -> Result<Vec<BrickState>, String> {
+    let value: Value =
+        serde_json::from_str(text).map_err(|e| format!("Failed to parse JSON: {e}"))?;
+    match value {
+        Value::Array(items) => items.into_iter().map(parse_brick_value).collect(),
+        Value::Object(map) => {
+            if let Some(content) = map.get("content") {
+                if let Value::Array(items) = content {
+                    return items
+                        .clone()
+                        .into_iter()
+                        .map(parse_brick_value)
+                        .collect();
+                }
+            }
+            let json = serde_json::to_string(&Value::Object(map)).map_err(|e| e.to_string())?;
+            Ok(vec![BrickState::from_json(&json)?])
+        }
+        Value::String(text) => Ok(vec![BrickState::from_json(&text)?]),
+        _ => Err("Unsupported JSON format for bricks".to_string()),
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -97,7 +134,16 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
         Callback::from(move |_: MouseEvent| {
             let dispatcher = dispatcher.clone();
             utility::upload_json(Callback::from(move |text: String| {
-                dispatcher.dispatch(TutorialAction::LoadJson(text));
+                match parse_bricks_from_json(&text) {
+                    Ok(bricks) => {
+                        for brick in bricks {
+                            dispatcher.dispatch(TutorialAction::AddBrick(brick));
+                        }
+                    }
+                    Err(e) => {
+                        web_sys::console::error_1(&format!("Import error: {e}").into());
+                    }
+                }
             }));
         })
     };

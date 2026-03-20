@@ -9,7 +9,6 @@ mod types_group;
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
-#[cfg(target_arch = "wasm32")]
 use colors_group::ColorsGroup;
 #[cfg(target_arch = "wasm32")]
 use content_group::ContentGroup;
@@ -62,16 +61,6 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
     let color_name = current.color_scheme.name.clone();
     let selected_color = current.color_scheme.clone();
 
-    let on_import_json = {
-        let dispatcher = props.dispatcher.clone();
-        Callback::from(move |_| {
-            let dispatcher = dispatcher.clone();
-            utility::upload_json(Callback::from(move |text: String| {
-                dispatcher.dispatch(StateAction::LoadJson(text));
-            }));
-        })
-    };
-
     let on_export_json = {
         let brick = props.brick.clone();
         Callback::from(move |_| {
@@ -110,7 +99,6 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
                 content={content_val}
                 on_content_input={on_content_input}
                 on_add_to_tutorial={props.on_add_to_tutorial.clone()}
-                on_import_json={on_import_json}
                 on_export_json={on_export_json}
                 on_save_svg={on_save_svg}
                 on_save_png={on_save_png}
