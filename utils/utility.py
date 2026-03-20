@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 
-source_dir = Path("../ref_all_bricks")
+source_dir = Path("../ref_all_bricks") # source folder that contains the bricks in the old json format
 target_dir = Path(__file__).parent / "output"
 
 offset_map = {

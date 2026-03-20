@@ -1,5 +1,5 @@
 
-Ordner: /home/dora/stoffl/drawable-hdpi
+Type: drawable-hdpi
 brick_1h_darkblue.9.png 81x66
 brick_1h_darkgreen.9.png 83x68
 brick_1h_gold.9.png 83x68
@@ -25,7 +25,7 @@ nolb_tiro.png 100x100
 stage_dialog_background_middle.png 540x188
 stage_dialog_background_side.png 188x188
 
-Ordner: /home/dora/stoffl/drawable-ldpi
+Type: drawable-ldpi
 brick_1h_blue.9.png 43x35
 brick_1h_cyan.9.png 43x35
 brick_1h_darkblue.9.png 43x35
@@ -74,7 +74,7 @@ brick_control_gold_1h.9.png 156x49
 brick_control_gold_2h.9.png 162x68
 brick_white_define_2h.9.png 156x68
 
-Ordner: /home/dora/stoffl/drawable-mdpi
+Type: drawable-mdpi
 brick_1h_blue.9.png 56x46
 brick_1h_cyan.9.png 56x46
 brick_1h_darkblue.9.png 56x46
@@ -130,7 +130,7 @@ nolb_tiro.png 66x66
 stage_dialog_background_middle.png 360x125
 stage_dialog_background_side.png 125x125
 
-Ordner: /home/dora/stoffl/drawable-nodpi
+Type: drawable-nodpi
 apple.png 211x237
 catrobat.png 480x480
 default_project_bird_wing_down.png 300x300
@@ -164,7 +164,7 @@ plotter.png 75x72
 racoon.png 480x480
 turtle.png 803x475
 
-Ordner: /home/dora/stoffl/drawable-xhdpi
+Type: drawable-xhdpi
 brick_1h_blue.9.png 111x90
 brick_1h_cyan.9.png 111x90
 brick_1h_darkblue.9.png 111x90
@@ -220,7 +220,7 @@ nolb_tiro.png 133x133
 stage_dialog_background_middle.png 720x251
 stage_dialog_background_side.png 251x251
 
-Ordner: /home/dora/stoffl/drawable-xxhdpi
+Type: drawable-xxhdpi
 brick_1h_darkblue.9.png 162x132
 brick_1h_darkgreen.9.png 164x134
 brick_1h_gold.9.png 164x134

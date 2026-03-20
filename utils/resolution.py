@@ -45,7 +45,7 @@ def read_png_dimensions(path: Path) -> tuple[int, int]:
     return int(width), int(height)
 
 
-_ORDNER_RE = re.compile(r"^\s*Ordner:\s*(?P<path>.+?)\s*$")
+_ORDNER_RE = re.compile(r"^\s*Type:\s*(?P<path>.+?)\s*$")
 _SIZE_RE = re.compile(r"^(?P<name>\S+)\s+(?P<w>\d+)x(?P<h>\d+)\s*$")
 
 
@@ -275,7 +275,7 @@ def main() -> int:
         output_file.parent.mkdir(parents=True, exist_ok=True)
         with output_file.open("w", encoding="utf-8", newline="\n") as out:
             for density_dir in density_dirs:
-                out.write(f"\nOrdner: {density_dir}\n")
+                out.write(f"\nType: {density_dir.name}\n")
 
                 for path in sorted(density_dir.iterdir(), key=lambda p: p.name):
                     if not path.is_file():
