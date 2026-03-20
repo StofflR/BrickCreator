@@ -1,4 +1,8 @@
 #[cfg(target_arch = "wasm32")]
+use gloo::events::EventListener;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -64,6 +68,75 @@ pub fn sidebar(props: &SidebarProps) -> Html {
     });
     let touch_start = use_mut_ref(|| None::<(f64, f64)>);
 
+    {
+        let open = open.clone();
+        let touch_start = touch_start.clone();
+        use_effect(move || {
+            let window = gloo::utils::window();
+            let start_window = window.clone();
+            let _start_open = open.clone();
+            let start_touch = touch_start.clone();
+            let start_listener = EventListener::new(&window, "touchstart", move |event| {
+                let Some(event) = event.dyn_ref::<web_sys::TouchEvent>() else {
+                    return;
+                };
+                let width = start_window
+                    .inner_width()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if width > 900.0 {
+                    return;
+                }
+                if let Some(touch) = event.touches().get(0) {
+                    let start_x = touch.client_x() as f64;
+                    let start_y = touch.client_y() as f64;
+                    start_touch.borrow_mut().replace((start_x, start_y));
+                }
+            });
+
+            let end_window = window.clone();
+            let end_open = open.clone();
+            let end_touch = touch_start.clone();
+            let end_listener = EventListener::new(&window, "touchend", move |event| {
+                let Some(event) = event.dyn_ref::<web_sys::TouchEvent>() else {
+                    return;
+                };
+                let width = end_window
+                    .inner_width()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if width > 900.0 {
+                    return;
+                }
+                let Some((start_x, start_y)) = end_touch.borrow_mut().take() else {
+                    return;
+                };
+                let Some(touch) = event.changed_touches().get(0) else {
+                    return;
+                };
+                let end_x = touch.client_x() as f64;
+                let end_y = touch.client_y() as f64;
+                let dx = end_x - start_x;
+                let dy = end_y - start_y;
+                if dx.abs() < 60.0 || dx.abs() < dy.abs() {
+                    return;
+                }
+                if *end_open && dx > 0.0 {
+                    end_open.set(false);
+                } else if !*end_open && dx < 0.0 {
+                    end_open.set(true);
+                }
+            });
+
+            move || {
+                drop(start_listener);
+                drop(end_listener);
+            }
+        });
+    }
+
     let toggle = {
         let open = open.clone();
         Callback::from(move |_: MouseEvent| open.set(!*open))
@@ -93,63 +166,7 @@ pub fn sidebar(props: &SidebarProps) -> Html {
     let sidebar_class = classes!("page__sidebar", (*open).then_some("page__sidebar--open"),);
 
     html! {
-        <div
-            class={sidebar_class}
-            ontouchstart={{
-                let touch_start = touch_start.clone();
-                let open = open.clone();
-                Callback::from(move |e: TouchEvent| {
-                    let width = gloo::utils::window()
-                        .inner_width()
-                        .ok()
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
-                    if width > 900.0 {
-                        return;
-                    }
-                    if let Some(touch) = e.touches().get(0) {
-                        let start_x = touch.client_x() as f64;
-                        let start_y = touch.client_y() as f64;
-                        if !*open && width > 0.0 && start_x < width - 36.0 {
-                            return;
-                        }
-                        touch_start.borrow_mut().replace((start_x, start_y));
-                    }
-                })
-            }}
-            ontouchend={{
-                let touch_start = touch_start.clone();
-                let open = open.clone();
-                Callback::from(move |e: TouchEvent| {
-                    let width = gloo::utils::window()
-                        .inner_width()
-                        .ok()
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(0.0);
-                    if width > 900.0 {
-                        return;
-                    }
-                    let Some((start_x, start_y)) = touch_start.borrow_mut().take() else {
-                        return;
-                    };
-                    let Some(touch) = e.changed_touches().get(0) else {
-                        return;
-                    };
-                    let end_x = touch.client_x() as f64;
-                    let end_y = touch.client_y() as f64;
-                    let dx = end_x - start_x;
-                    let dy = end_y - start_y;
-                    if dx.abs() < 60.0 || dx.abs() < dy.abs() {
-                        return;
-                    }
-                    if *open && dx > 0.0 {
-                        open.set(false);
-                    } else if !*open && dx < 0.0 {
-                        open.set(true);
-                    }
-                })
-            }}
-        >
+        <div class={sidebar_class}>
             <div class="sidebar-strip">
                 <button class="sidebar-toggle" onclick={toggle} type="button">
                     { chevron_icon }
