@@ -48,7 +48,6 @@ impl Reducible for TutorialViewState {
                 new_state.selected_index = match (removed_index, len) {
                     (Some(_index), 0) => None,
                     (Some(index), len) => {
-                    
                         if index + 1 == old_len {
                             Some(len - 1)
                         } else {

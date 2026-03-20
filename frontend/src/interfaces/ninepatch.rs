@@ -303,12 +303,12 @@ fn apply_ninepatch_markers(pixmap: &mut tiny_skia::Pixmap, width: u32, height: u
     };
 
     for x in 1..(width - 1) {
-        set(pixels, x, 0); 
-        set(pixels, x, height - 1); 
+        set(pixels, x, 0);
+        set(pixels, x, height - 1);
     }
     for y in 1..(height - 1) {
-        set(pixels, 0, y); 
-        set(pixels, width - 1, y); 
+        set(pixels, 0, y);
+        set(pixels, width - 1, y);
     }
 }
 
