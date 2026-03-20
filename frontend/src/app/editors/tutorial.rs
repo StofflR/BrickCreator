@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::app::views::brick_catalog_modal::BrickCatalogModal;
+#[cfg(target_arch = "wasm32")]
 use crate::app::views::tutorial::TutorialEditView;
 #[cfg(target_arch = "wasm32")]
 use crate::app::views::tutorial_preview::TutorialPreviewView;
@@ -37,6 +39,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
     let bricks = props.tutorial.get_brick_state_list();
     let preview_toggle = use_state(|| false);
     let preview = *preview_toggle.clone();
+    let catalog_open = use_state(|| false);
     let all_bricks_url = use_state(|| Option::<String>::None);
     let all_bricks_rendering = use_state(|| false);
     let ninepatch_url = use_state(|| Option::<String>::None);
@@ -73,6 +76,13 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
     let on_toggle_preview = {
         Callback::from(move |_: MouseEvent| {
             preview_toggle.clone().set(!*preview_toggle);
+        })
+    };
+
+    let on_open_catalog = {
+        let catalog_open = catalog_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            catalog_open.set(true);
         })
     };
 
@@ -362,6 +372,22 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
     html! {
         <EditorGroup title="Tutorial Editor">
             <div class="tutorial-view">
+                if *catalog_open {
+                    <BrickCatalogModal
+                        on_close={{
+                            let catalog_open = catalog_open.clone();
+                            Callback::from(move |_: MouseEvent| catalog_open.set(false))
+                        }}
+                        on_add_brick={{
+                            let dispatcher = props.tutorial_dispatcher.clone();
+                            let catalog_open = catalog_open.clone();
+                            Callback::from(move |brick: BrickState| {
+                                dispatcher.dispatch(TutorialAction::AddBrick(brick));
+                                catalog_open.set(false);
+                            })
+                        }}
+                    />
+                }
                 <TutorialSettingsView
                     {on_add}
                     {on_remove}
@@ -372,6 +398,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                     {on_save_png}
                     {on_export_all_bricks_png}
                     {on_export_ninepatch_zip}
+                    {on_open_catalog}
                     {all_bricks_ready}
                     all_bricks_rendering={*all_bricks_rendering}
                     {ninepatch_ready}

@@ -23,6 +23,8 @@ const ICON_FILE_PNG: &str = include_str!("../../res/file_png.svg");
 const ICON_DOWNLOAD: &str = include_str!("../../res/download.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_NINEPATCH: &str = include_str!("../../res/ninepatch_9.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_OUTPUT: &str = include_str!("../../res/output.svg");
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -36,6 +38,7 @@ pub struct TutorialSettingsViewProps {
     pub on_save_png: Callback<MouseEvent>,
     pub on_export_all_bricks_png: Callback<MouseEvent>,
     pub on_export_ninepatch_zip: Callback<MouseEvent>,
+    pub on_open_catalog: Callback<MouseEvent>,
     pub all_bricks_ready: bool, // flag that shows that there is a finished blob-URL im state
     pub all_bricks_rendering: bool, // flag that disables export all button  
     pub ninepatch_ready: bool,
@@ -126,6 +129,11 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
                 title={ninepatch_title}
                 onclick={props.on_export_ninepatch_zip.clone()}
                 disabled={props.ninepatch_rendering}
+            />
+            <IconButton
+                icon={Html::from_html_unchecked(AttrValue::from(ICON_OUTPUT))}
+                title="Open brick catalog"
+                onclick={props.on_open_catalog.clone()}
             />
         </div>
     }
