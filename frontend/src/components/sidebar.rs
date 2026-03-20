@@ -1,4 +1,8 @@
 #[cfg(target_arch = "wasm32")]
+use gloo::events::EventListener;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -49,12 +53,89 @@ pub struct SidebarProps {
 #[cfg(target_arch = "wasm32")]
 #[function_component(Sidebar)]
 pub fn sidebar(props: &SidebarProps) -> Html {
-    let open = use_state(|| false);
+    let open = use_state(|| {
+        gloo::utils::window()
+            .inner_width()
+            .ok()
+            .and_then(|v| v.as_f64())
+            .map(|w| w > 900.0)
+            .unwrap_or(false)
+    });
     let light = use_state(|| {
         let saved = load_saved_theme();
         apply_theme(saved);
         saved
     });
+    let touch_start = use_mut_ref(|| None::<(f64, f64)>);
+
+    {
+        let open = open.clone();
+        let touch_start = touch_start.clone();
+        use_effect(move || {
+            let window = gloo::utils::window();
+            let start_window = window.clone();
+            let _start_open = open.clone();
+            let start_touch = touch_start.clone();
+            let start_listener = EventListener::new(&window, "touchstart", move |event| {
+                let Some(event) = event.dyn_ref::<web_sys::TouchEvent>() else {
+                    return;
+                };
+                let width = start_window
+                    .inner_width()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if width > 900.0 {
+                    return;
+                }
+                if let Some(touch) = event.touches().get(0) {
+                    let start_x = touch.client_x() as f64;
+                    let start_y = touch.client_y() as f64;
+                    start_touch.borrow_mut().replace((start_x, start_y));
+                }
+            });
+
+            let end_window = window.clone();
+            let end_open = open.clone();
+            let end_touch = touch_start.clone();
+            let end_listener = EventListener::new(&window, "touchend", move |event| {
+                let Some(event) = event.dyn_ref::<web_sys::TouchEvent>() else {
+                    return;
+                };
+                let width = end_window
+                    .inner_width()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if width > 900.0 {
+                    return;
+                }
+                let Some((start_x, start_y)) = end_touch.borrow_mut().take() else {
+                    return;
+                };
+                let Some(touch) = event.changed_touches().get(0) else {
+                    return;
+                };
+                let end_x = touch.client_x() as f64;
+                let end_y = touch.client_y() as f64;
+                let dx = end_x - start_x;
+                let dy = end_y - start_y;
+                if dx.abs() < 60.0 || dx.abs() < dy.abs() {
+                    return;
+                }
+                if *end_open && dx > 0.0 {
+                    end_open.set(false);
+                } else if !*end_open && dx < 0.0 {
+                    end_open.set(true);
+                }
+            });
+
+            move || {
+                drop(start_listener);
+                drop(end_listener);
+            }
+        });
+    }
 
     let toggle = {
         let open = open.clone();
