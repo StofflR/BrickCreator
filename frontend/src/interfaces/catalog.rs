@@ -3,8 +3,8 @@ use shared::common::BrickRenderable;
 pub fn render_all_bricks_zip_bytes(tile_width: u32) -> Result<Vec<u8>, String> {
     use std::io::{Cursor, Write};
 
-    use zip::write::{FileOptions, ZipWriter};
     use zip::CompressionMethod;
+    use zip::write::{FileOptions, ZipWriter};
 
     let tile_width = tile_width.max(1);
     let mut zip = ZipWriter::new(Cursor::new(Vec::<u8>::new()));

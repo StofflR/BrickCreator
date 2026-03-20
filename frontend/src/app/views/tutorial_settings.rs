@@ -35,7 +35,7 @@ pub struct TutorialSettingsViewProps {
     pub on_export_ninepatch_zip: Callback<MouseEvent>,
     pub on_open_catalog: Callback<MouseEvent>,
     pub all_bricks_ready: bool, // flag that shows that there is a finished blob-URL im state
-    pub all_bricks_rendering: bool, // flag that disables export all button  
+    pub all_bricks_rendering: bool, // flag that disables export all button
     pub ninepatch_ready: bool,
     pub ninepatch_rendering: bool,
     pub has_selection: bool,

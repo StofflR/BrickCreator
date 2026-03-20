@@ -8,8 +8,8 @@ use shared::common::SVGRenderable;
 pub fn render_ninepatch_zip_bytes() -> Result<Vec<u8>, String> {
     use std::io::{Cursor, Write};
 
-    use zip::write::{FileOptions, ZipWriter};
     use zip::CompressionMethod;
+    use zip::write::{FileOptions, ZipWriter};
 
     let mut zip = ZipWriter::new(Cursor::new(Vec::<u8>::new()));
     let opts = FileOptions::<()>::default().compression_method(CompressionMethod::Stored);
@@ -31,8 +31,7 @@ pub fn render_ninepatch_zip_bytes() -> Result<Vec<u8>, String> {
                     slugify(&scheme.name)
                 );
 
-                zip.start_file(file_name, opts)
-                    .map_err(|e| e.to_string())?;
+                zip.start_file(file_name, opts).map_err(|e| e.to_string())?;
                 zip.write_all(&png).map_err(|e| e.to_string())?;
             }
         }
@@ -275,10 +274,8 @@ fn render_svg_with_padding(
     let _inner_w = (target_width - pad2) as f32;
     let inner_h = (target_height - pad2) as f32;
 
-    let mut pixmap =
-        tiny_skia::Pixmap::new(target_width, target_height).ok_or_else(|| {
-            format!("Failed to create pixmap with {target_width}x{target_height}")
-        })?;
+    let mut pixmap = tiny_skia::Pixmap::new(target_width, target_height)
+        .ok_or_else(|| format!("Failed to create pixmap with {target_width}x{target_height}"))?;
 
     // Keep the brick's aspect ratio. If the rendered brick is wider than the target,
     // it will be cropped on the right by the pixmap bounds (instead of being squashed).

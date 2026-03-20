@@ -12,7 +12,7 @@ use yew::prelude::*;
 use web_sys::KeyboardEvent;
 
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::{closure::Closure, JsCast};
+use wasm_bindgen::{JsCast, closure::Closure};
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -59,10 +59,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
             let window = web_sys::window().unwrap();
 
             window
-                .add_event_listener_with_callback(
-                    "keydown",
-                    handler.as_ref().unchecked_ref(),
-                )
+                .add_event_listener_with_callback("keydown", handler.as_ref().unchecked_ref())
                 .unwrap();
 
             move || {

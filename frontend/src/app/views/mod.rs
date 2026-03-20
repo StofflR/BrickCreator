@@ -1,7 +1,7 @@
 pub mod brick;
+pub mod brick_catalog_modal;
 pub mod brick_preview;
 pub mod brick_settings;
-pub mod brick_catalog_modal;
 pub mod brick_type;
 pub mod color;
 pub mod tutorial;

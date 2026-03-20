@@ -5,13 +5,13 @@ use std::collections::BTreeMap;
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
+use crate::app::views::brick::BrickView;
+#[cfg(target_arch = "wasm32")]
 use crate::components::card::Card;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
 use crate::components::modal::Modal;
-#[cfg(target_arch = "wasm32")]
-use crate::app::views::brick::BrickView;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
 

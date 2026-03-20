@@ -43,7 +43,11 @@ impl Clone for Tutorial {
     fn clone(&self) -> Self {
         Tutorial {
             name: self.name.clone(),
-            content: self.content.iter().map(|brick| clone_brick(brick.as_ref())).collect(),
+            content: self
+                .content
+                .iter()
+                .map(|brick| clone_brick(brick.as_ref()))
+                .collect(),
         }
     }
 }

@@ -11,19 +11,19 @@ use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
 #[cfg(target_arch = "wasm32")]
-use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
-#[cfg(target_arch = "wasm32")]
-use crate::interfaces::utility;
-#[cfg(target_arch = "wasm32")]
 use crate::interfaces::catalog;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::ninepatch;
 #[cfg(target_arch = "wasm32")]
+use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
+#[cfg(target_arch = "wasm32")]
+use crate::interfaces::utility;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
 #[cfg(target_arch = "wasm32")]
-use yew::prelude::*;
-#[cfg(target_arch = "wasm32")]
 use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
+#[cfg(target_arch = "wasm32")]
+use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -234,7 +234,9 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                         ),
                     }
                 }
-                Err(e) => web_sys::console::error_1(&format!("All bricks render error: {e}").into()),
+                Err(e) => {
+                    web_sys::console::error_1(&format!("All bricks render error: {e}").into())
+                }
             }
             all_bricks_rendering.set(false);
         })
@@ -345,9 +347,9 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                                 );
                             }
                         }
-                        Err(e) => web_sys::console::error_1(
-                            &format!("9-patch URL error: {e:?}").into(),
-                        ),
+                        Err(e) => {
+                            web_sys::console::error_1(&format!("9-patch URL error: {e:?}").into())
+                        }
                     }
                 }
                 Err(e) => web_sys::console::error_1(&format!("9-patch render error: {e}").into()),

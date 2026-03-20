@@ -1,6 +1,5 @@
 use std::{
-    env,
-    fs,
+    env, fs,
     path::{Path, PathBuf},
 };
 
@@ -50,7 +49,9 @@ fn main() {
 
         out.push_str("    (");
         out.push_str(&rel_lit);
-        out.push_str(", include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/../utils/output/\", ");
+        out.push_str(
+            ", include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/../utils/output/\", ",
+        );
         out.push_str(&rel_lit);
         out.push_str("))),\n");
     }
@@ -60,4 +61,3 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR"));
     fs::write(out_dir.join("brick_catalog.rs"), out).expect("write brick_catalog.rs");
 }
-
