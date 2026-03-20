@@ -42,11 +42,19 @@ impl Reducible for TutorialViewState {
             TutorialAction::RemoveSelected => {
                 let mut new_state = (*self).clone();
                 let removed_index = new_state.selected_index;
+                let old_len = new_state.tutorial.content.len();
                 new_state.remove_selected();
                 let len = new_state.tutorial.content.len();
                 new_state.selected_index = match (removed_index, len) {
                     (Some(_index), 0) => None,
-                    (Some(index), len) => Some(index.min(len - 1)),
+                    (Some(index), len) => {
+                    
+                        if index + 1 == old_len {
+                            Some(len - 1)
+                        } else {
+                            Some(index)
+                        }
+                    }
                     _ => None,
                 };
                 Rc::new(new_state)
