@@ -20,15 +20,13 @@ for json_file in source_dir.rglob("*.json"):
     print(new_path)
     new_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # open json
     with open(json_file, "r", encoding="utf-8") as f:
         data = json.load(f)
 
     brick_type = data["Size"] + data["Type"]
 
-    # edit json
     new_data = {
-        "content": data.get("Content", ""), # empty for default
+        "content": data.get("Content", ""),
         "brick_type": brick_type,
         "color_scheme": [
             data["Color"],
@@ -43,9 +41,7 @@ for json_file in source_dir.rglob("*.json"):
         "scale": [18.75, 13.0]
     }
 
-    # override offset if defined
     offset_map.get(new_data["brick_type"])
 
-    # store json
     with open(new_path, "w", encoding="utf-8") as f:
         json.dump(new_data, f, indent=2, ensure_ascii=False)

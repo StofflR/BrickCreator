@@ -70,8 +70,7 @@ impl DensitySpec {
     }
 }
 
-// Derived from `utils/auflösung.py --input utils/png_sizes.txt --format text`
-// (values correspond to the chosen reference files in that script).
+// Derived from `utils/resoltion.py --input utils/png_sizes.txt --format text`
 const DENSITIES: &[DensitySpec] = &[
     DensitySpec {
         name: "ldpi",
@@ -277,8 +276,7 @@ fn render_svg_with_padding(
     let mut pixmap = tiny_skia::Pixmap::new(target_width, target_height)
         .ok_or_else(|| format!("Failed to create pixmap with {target_width}x{target_height}"))?;
 
-    // Keep the brick's aspect ratio. If the rendered brick is wider than the target,
-    // it will be cropped on the right by the pixmap bounds (instead of being squashed).
+    // cropping on the right by the pixmap bounds (instead of being squashed)
     let scale = inner_h / svg_height;
     let transform = tiny_skia::Transform::from_scale(scale, scale)
         .post_translate(padding as f32, padding as f32);
@@ -305,12 +303,12 @@ fn apply_ninepatch_markers(pixmap: &mut tiny_skia::Pixmap, width: u32, height: u
     };
 
     for x in 1..(width - 1) {
-        set(pixels, x, 0); // stretch x
-        set(pixels, x, height - 1); // padding x
+        set(pixels, x, 0); 
+        set(pixels, x, height - 1); 
     }
     for y in 1..(height - 1) {
-        set(pixels, 0, y); // stretch y
-        set(pixels, width - 1, y); // padding y
+        set(pixels, 0, y); 
+        set(pixels, width - 1, y); 
     }
 }
 

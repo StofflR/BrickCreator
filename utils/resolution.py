@@ -40,7 +40,6 @@ def read_png_dimensions(path: Path) -> tuple[int, int]:
         header = f.read(24)
     if len(header) < 24 or header[:8] != b"\x89PNG\r\n\x1a\n":
         raise ValueError("Not a PNG file")
-    # IHDR chunk starts at byte 8; width/height are big-endian at bytes 16..24.
     width, height = struct.unpack(">II", header[16:24])
     return int(width), int(height)
 
