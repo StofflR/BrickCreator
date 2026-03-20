@@ -27,7 +27,6 @@ pub struct TutorialEditViewProps {
 #[cfg(target_arch = "wasm32")]
 #[function_component(TutorialEditView)]
 pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
-    // ── Tastatursteuerung ───────────────────────────────────────
     {
         let on_move = props.on_move.clone();
         let selected_index = props.selected_index;
@@ -73,7 +72,6 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
         });
     }
 
-    // ── Render ─────────────────────────────────────────────────
     if props.bricks.is_empty() {
         html! {
             <div class="tutorial-view__empty">
@@ -99,7 +97,6 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                             <DragDropItem>
                                 <div class="brick-row">
 
-                                    // ── Pfeile links ───────────────────────
                                     <div class="brick-controls">
                                         {
                                             if is_selected {
@@ -145,7 +142,6 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                         }
                                     </div>
 
-                                    // ── Brick ─────────────────────────────
                                     <BrickView brick={state.clone()} />
 
                                 </div>
