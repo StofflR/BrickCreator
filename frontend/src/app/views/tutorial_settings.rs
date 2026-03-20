@@ -4,11 +4,7 @@ use crate::components::icon_button::IconButton;
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-const ICON_ADD: &str = include_str!("../../res/add.svg");
-#[cfg(target_arch = "wasm32")]
 const ICON_DELETE: &str = include_str!("../../res/delete.svg");
-#[cfg(target_arch = "wasm32")]
-const ICON_CHECK: &str = include_str!("../../res/check.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_PREVIEW: &str = include_str!("../../res/preview.svg");
 #[cfg(target_arch = "wasm32")]
@@ -29,7 +25,6 @@ const ICON_OUTPUT: &str = include_str!("../../res/output.svg");
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
 pub struct TutorialSettingsViewProps {
-    pub on_add: Callback<MouseEvent>,
     pub on_remove: Callback<MouseEvent>,
     pub on_apply: Callback<MouseEvent>,
     pub on_toggle_preview: Callback<MouseEvent>,
@@ -82,18 +77,13 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
     html! {
         <div class="tutorial-view__toolbar">
             <IconButton
-                icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
-                title="Add brick"
-                onclick={props.on_add.clone()}
-            />
-            <IconButton
                 icon={Html::from_html_unchecked(AttrValue::from(ICON_DELETE))}
                 title="Remove brick"
                 onclick={props.on_remove.clone()}
                 disabled={!props.has_selection}
             />
             <IconButton
-                icon={Html::from_html_unchecked(AttrValue::from(ICON_CHECK))}
+                icon={Html::from_html_unchecked(AttrValue::from(ICON_EDIT))}
                 title="Apply changes"
                 onclick={props.on_apply.clone()}
                 disabled={!props.has_selection}

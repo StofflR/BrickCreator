@@ -6,6 +6,8 @@ use crate::components::icon_button::IconButton;
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
+const ICON_ADD: &str = include_str!("../../../res/add.svg");
+#[cfg(target_arch = "wasm32")]
 const ICON_UPLOAD: &str = include_str!("../../../res/upload.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_FILE_JSON: &str = include_str!("../../../res/file_json.svg");
@@ -19,6 +21,7 @@ const ICON_FILE_PNG: &str = include_str!("../../../res/file_png.svg");
 pub struct ContentGroupProps {
     pub content: String,
     pub on_content_input: Callback<InputEvent>,
+    pub on_add_to_tutorial: Callback<MouseEvent>,
     pub on_import_json: Callback<MouseEvent>,
     pub on_export_json: Callback<MouseEvent>,
     pub on_save_svg: Callback<MouseEvent>,
@@ -37,6 +40,11 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
                 oninput={props.on_content_input.clone()}
             />
             <div class="brick-settings__buttons">
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
+                    title="Add to tutorial"
+                    onclick={props.on_add_to_tutorial.clone()}
+                />
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
                     title="Import JSON"
