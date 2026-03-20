@@ -65,3 +65,39 @@
     overflow: auto;
     width: var(--sidebar-width);
 }
+
+@media (max-width: 900px) {
+    .page {
+        position: relative;
+    }
+
+    .page__sidebar {
+        position: fixed;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 20;
+        height: 100dvh;
+        box-shadow: -8px 0 16px rgba(0, 0, 0, 0.25);
+        width: var(--toggle-width);
+    }
+
+    .page__sidebar--open {
+        flex-basis: 100vw;
+        width: 100vw;
+    }
+
+    .sidebar-strip {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        background: var(--color-surface);
+        z-index: 2;
+    }
+
+    .sidebar-content {
+        width: 100vw;
+        padding-left: calc(var(--gap) + var(--toggle-width));
+    }
+}
