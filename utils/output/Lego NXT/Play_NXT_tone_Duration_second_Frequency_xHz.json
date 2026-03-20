@@ -1,0 +1,18 @@
+{
+  "content": "Play NXT tone\nDuration _1_ second\nFrequency _2_ x100Hz",
+  "brick_type": "H2Base",
+  "color_scheme": [
+    "#fccb41",
+    "#aa8832",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.06462156177390495
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}

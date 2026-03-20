@@ -1,0 +1,18 @@
+{
+  "content": "Wait for next NFC tag to write\n_'www.catrobat.org'_ as record type\n|HTTPS|",
+  "brick_type": "H2Base",
+  "color_scheme": [
+    "#95750c",
+    "#57452c",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.06462156177390495
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}

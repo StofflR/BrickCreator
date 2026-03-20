@@ -14,6 +14,7 @@ fn download_blob(blob: &Blob, filename: &str) -> Result<(), String> {
     let document = web_sys::window()
         .and_then(|w| w.document())
         .ok_or("No document")?;
+    let window = web_sys::window().ok_or("No window")?;
 
     let anchor: HtmlAnchorElement = document
         .create_element("a")
@@ -30,7 +31,18 @@ fn download_blob(blob: &Blob, filename: &str) -> Result<(), String> {
     anchor.click();
     body.remove_child(&anchor).map_err(|e| format!("{e:?}"))?;
 
-    Url::revoke_object_url(&url).map_err(|e| format!("{e:?}"))?;
+    // Some browsers cancel downloads if we revoke the URL too early.
+    let url_to_revoke = url.clone();
+    let revoke = wasm_bindgen::closure::Closure::once(move || {
+        let _ = Url::revoke_object_url(&url_to_revoke);
+    });
+    window
+        .set_timeout_with_callback_and_timeout_and_arguments_0(
+            revoke.as_ref().unchecked_ref(),
+            60_000,
+        )
+        .map_err(|e| format!("{e:?}"))?;
+    revoke.forget();
     Ok(())
 }
 

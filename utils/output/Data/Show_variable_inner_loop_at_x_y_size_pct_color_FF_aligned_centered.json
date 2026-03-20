@@ -1,0 +1,18 @@
+{
+  "content": "Show variable\n|inner loop|\nat x: _100_ y: _100_\nsize: _120_ % color: _'#FF0000'_\naligned\n|centered|",
+  "brick_type": "H3Base",
+  "color_scheme": [
+    "#f24e50",
+    "#ae2f2f",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.03877293706434297
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}

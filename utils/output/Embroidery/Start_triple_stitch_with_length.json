@@ -1,0 +1,18 @@
+{
+  "content": "Start triple stitch with length _10_\n",
+  "brick_type": "H1Base",
+  "color_scheme": [
+    "#cf7aa6",
+    "#935e7b",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.0617494923617314
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "content": "Store colums _1_ of the \ncomma-separated values\n_'kitty, cute puppy'_\ninto list\n|new...|",
+  "brick_type": "H3Base",
+  "color_scheme": [
+    "#f24e50",
+    "#ae2f2f",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.03877293706434297
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "content": "Set variable\n|inner loop|\nto _phiro side right sensor_",
+  "brick_type": "H2Base",
+  "color_scheme": [
+    "#f24e50",
+    "#ae2f2f",
+    "#383838",
+    "#ffffff"
+  ],
+  "offset": [
+    0.125,
+    0.06462156177390495
+  ],
+  "scale": [
+    18.75,
+    13.0
+  ]
+}
