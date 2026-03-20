@@ -19,6 +19,6 @@ wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = ["Window", "Document", "Element", "EventTarget", "File", "FileList", "FileReader", "HtmlElement", "HtmlAnchorElement", "HtmlCanvasElement", "CanvasRenderingContext2d", "HtmlImageElement", "HtmlInputElement", "HtmlTextAreaElement", "DragEvent", "DataTransfer", "Blob", "BlobPropertyBag", "Url", "ResizeObserver", "ResizeObserverEntry", "TouchEvent", "TouchList", "Touch"] }
 js-sys = "0.3"
 console_error_panic_hook = "0.1"
-yew = { version = "0.22.1", features = ["csr"] }
+yew = { version = "0.23", features = ["csr"] }
 gloo = { version = "0.11", features = ["file"] }
 zip = { version = "2.4.2", default-features = false }
