@@ -16,10 +16,11 @@ use crate::interfaces::ninepatch;
 use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
+use std::rc::Rc;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
 #[cfg(target_arch = "wasm32")]
-use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
+use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, HtmlSelectElement, Url};
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
@@ -45,12 +46,23 @@ fn app() -> Html {
     let ninepatch_url = use_state(|| Option::<String>::None);
     let ninepatch_rendering = use_state(|| false);
 
+    let selected_action = use_state(|| "brick".to_string());
+
     let brick_dispatcher = brick.dispatcher();
     let tutorial_dispatcher = tutorial.dispatcher();
 
-    let on_import_brick_json = {
+    let on_action_change = {
+        let selected_action = selected_action.clone();
+        Callback::from(move |e: Event| {
+            if let Some(select) = e.target_dyn_into::<HtmlSelectElement>() {
+                selected_action.set(select.value());
+            }
+        })
+    };
+
+    let import_brick = {
         let dispatcher = brick_dispatcher.clone();
-        Callback::from(move |_: MouseEvent| {
+        Rc::new(move || {
             let dispatcher = dispatcher.clone();
             utility::upload_json(Callback::from(move |text: String| {
                 dispatcher.dispatch(StateAction::LoadJson(text));
@@ -58,9 +70,9 @@ fn app() -> Html {
         })
     };
 
-    let on_export_brick_json = {
+    let export_brick = {
         let brick_state = (*brick).clone();
-        Callback::from(move |_: MouseEvent| {
+        Rc::new(move || {
             let json = brick_state.to_string();
             if let Err(e) = utility::download_json(&json, "brick.json") {
                 web_sys::console::error_1(&format!("Export error: {e}").into());
@@ -68,9 +80,9 @@ fn app() -> Html {
         })
     };
 
-    let on_import_tutorial_json = {
+    let import_tutorial = {
         let dispatcher = tutorial_dispatcher.clone();
-        Callback::from(move |_: MouseEvent| {
+        Rc::new(move || {
             let dispatcher = dispatcher.clone();
             utility::upload_json(Callback::from(move |text: String| {
                 dispatcher.dispatch(TutorialAction::LoadJson(text));
@@ -78,9 +90,9 @@ fn app() -> Html {
         })
     };
 
-    let on_export_tutorial_json = {
+    let export_tutorial = {
         let tutorial_state = (*tutorial).clone();
-        Callback::from(move |_: MouseEvent| {
+        Rc::new(move || {
             let json = tutorial_state.to_json();
             if let Err(e) = utility::download_json(&json, "tutorial.json") {
                 web_sys::console::error_1(&format!("Export error: {e}").into());
@@ -88,9 +100,9 @@ fn app() -> Html {
         })
     };
 
-    let on_save_tutorial_png = {
+    let save_tutorial_png = {
         let tutorial_state = (*tutorial).clone();
-        Callback::from(move |_: MouseEvent| match tutorial_state.get_png_bytes(1920) {
+        Rc::new(move || match tutorial_state.get_png_bytes(1920) {
             Ok(data) => {
                 if let Err(e) = utility::download_png(&data, "tutorial.png") {
                     web_sys::console::error_1(&format!("PNG error: {e}").into());
@@ -100,10 +112,10 @@ fn app() -> Html {
         })
     };
 
-    let on_export_all_bricks_png = {
+    let export_all_bricks = {
         let all_bricks_url = all_bricks_url.clone();
         let all_bricks_rendering = all_bricks_rendering.clone();
-        Callback::from(move |_: MouseEvent| {
+        Rc::new(move || {
             if *all_bricks_rendering {
                 return;
             }
@@ -218,10 +230,10 @@ fn app() -> Html {
         })
     };
 
-    let on_export_ninepatch_zip = {
+    let export_ninepatch = {
         let ninepatch_url = ninepatch_url.clone();
         let ninepatch_rendering = ninepatch_rendering.clone();
-        Callback::from(move |_: MouseEvent| {
+        Rc::new(move || {
             if *ninepatch_rendering {
                 return;
             }
@@ -334,7 +346,37 @@ fn app() -> Html {
         })
     };
 
+    let on_import_selected = {
+        let selected_action = selected_action.clone();
+        let import_brick = import_brick.clone();
+        let import_tutorial = import_tutorial.clone();
+        Callback::from(move |_: MouseEvent| {
+            match selected_action.as_str() {
+                "brick" => (import_brick)(),
+                "tutorial" => (import_tutorial)(),
+                _ => {}
+            }
+        })
+    };
 
+    let on_export_selected = {
+        let selected_action = selected_action.clone();
+        let export_brick = export_brick.clone();
+        let export_tutorial = export_tutorial.clone();
+        let save_tutorial_png = save_tutorial_png.clone();
+        let export_all_bricks = export_all_bricks.clone();
+        let export_ninepatch = export_ninepatch.clone();
+        Callback::from(move |_: MouseEvent| {
+            match selected_action.as_str() {
+                "brick" => (export_brick)(),
+                "tutorial" => (export_tutorial)(),
+                "tutorial_png" => (save_tutorial_png)(),
+                "all_bricks" => (export_all_bricks)(),
+                "ninepatch" => (export_ninepatch)(),
+                _ => {}
+            }
+        })
+    };
     let all_bricks_ready = (*all_bricks_url).is_some();
     let ninepatch_ready = (*ninepatch_url).is_some();
 
@@ -358,48 +400,43 @@ fn app() -> Html {
         <div class="page">
             <div class="page__toolbar">
                 <div class="page__toolbar-group">
-                    <span class="page__toolbar-label">{"Brick"}</span>
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                        title="Import Brick JSON"
-                        onclick={on_import_brick_json.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_JSON))}
-                        title="Export Brick JSON"
-                        onclick={on_export_brick_json.clone()}
-                    />
+                    <span class="page__toolbar-label">{"Action"}</span>
+                    <select class="page__toolbar-select" onchange={on_action_change}>
+                        <option value="brick">{"Brick JSON"}</option>
+                        <option value="tutorial">{"Tutorial JSON"}</option>
+                        <option value="tutorial_png">{"Tutorial PNG"}</option>
+                        <option value="all_bricks">{"All Bricks ZIP"}</option>
+                        <option value="ninepatch">{"9-patch ZIP"}</option>
+                    </select>
                 </div>
-                <div class="page__toolbar-group">
-                    <span class="page__toolbar-label">{"Tutorial"}</span>
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                        title="Import Tutorial JSON"
-                        onclick={on_import_tutorial_json.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_JSON))}
-                        title="Export Tutorial JSON"
-                        onclick={on_export_tutorial_json.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_PNG))}
-                        title="Save Tutorial PNG"
-                        onclick={on_save_tutorial_png.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
-                        title={all_bricks_title}
-                        onclick={on_export_all_bricks_png.clone()}
-                        disabled={*all_bricks_rendering}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_NINEPATCH))}
-                        title={ninepatch_title}
-                        onclick={on_export_ninepatch_zip.clone()}
-                        disabled={*ninepatch_rendering}
-                    />
-                </div>
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
+                    title={if selected_action.as_str() == "tutorial" { "Import Tutorial JSON" } else { "Import Brick JSON" }}
+                    onclick={on_import_selected.clone()}
+                    disabled={!(selected_action.as_str() == "brick" || selected_action.as_str() == "tutorial")}
+                />
+                <IconButton
+                    icon={match selected_action.as_str() {
+                        "tutorial_png" => Html::from_html_unchecked(AttrValue::from(ICON_FILE_PNG)),
+                        "all_bricks" => Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD)),
+                        "ninepatch" => Html::from_html_unchecked(AttrValue::from(ICON_NINEPATCH)),
+                        _ => Html::from_html_unchecked(AttrValue::from(ICON_FILE_JSON)),
+                    }}
+                    title={match selected_action.as_str() {
+                        "brick" => "Export Brick JSON",
+                        "tutorial" => "Export Tutorial JSON",
+                        "tutorial_png" => "Save Tutorial PNG",
+                        "all_bricks" => all_bricks_title,
+                        "ninepatch" => ninepatch_title,
+                        _ => "Export",
+                    }}
+                    onclick={on_export_selected.clone()}
+                    disabled={match selected_action.as_str() {
+                        "all_bricks" => *all_bricks_rendering,
+                        "ninepatch" => *ninepatch_rendering,
+                        _ => false,
+                    }}
+                />
             </div>
             <div class="page__content">
                 <div class="page__main">
