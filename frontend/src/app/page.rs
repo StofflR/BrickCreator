@@ -30,6 +30,11 @@ const ICON_UPLOAD: &str = include_str!("../res/upload.svg");
 const ICON_DOWNLOAD: &str = include_str!("../res/download.svg");
 
 #[cfg(target_arch = "wasm32")]
+const SUN_ICON: &str = include_str!("../res/sun.svg");
+#[cfg(target_arch = "wasm32")]
+const MOON_ICON: &str = include_str!("../res/moon.svg");
+
+#[cfg(target_arch = "wasm32")]
 #[derive(Clone, Copy, PartialEq)]
 enum ExportTarget {
     BrickJson,
@@ -54,6 +59,36 @@ enum ImportTarget {
 }
 
 #[cfg(target_arch = "wasm32")]
+fn get_document() -> web_sys::Document {
+    gloo::utils::document()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn load_saved_theme() -> bool {
+    gloo::utils::window()
+        .local_storage()
+        .ok()
+        .flatten()
+        .and_then(|s| s.get_item("theme").ok().flatten())
+        .map(|v| v == "light")
+        .unwrap_or(false)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn apply_theme(light: bool) {
+    if let Some(el) = get_document().document_element() {
+        if light {
+            let _ = el.set_attribute("data-theme", "light");
+        } else {
+            let _ = el.remove_attribute("data-theme");
+        }
+    }
+    if let Ok(Some(storage)) = gloo::utils::window().local_storage() {
+        let _ = storage.set_item("theme", if light { "light" } else { "dark" });
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
 #[function_component(App)]
 fn app() -> Html {
     let brick = use_reducer(BrickState::default);
@@ -69,6 +104,12 @@ fn app() -> Html {
     let export_target = use_state(|| ExportTarget::BrickJson);
     let export_bricks_target = use_state(|| BricksZipTarget::All);
     let import_target = use_state(|| ImportTarget::BrickJson);
+
+    let light = use_state(|| {
+        let saved = load_saved_theme();
+        apply_theme(saved);
+        saved
+    });
 
     let brick_dispatcher = brick.dispatcher();
     let tutorial_dispatcher = tutorial.dispatcher();
@@ -448,6 +489,15 @@ fn app() -> Html {
         Callback::from(move |_: MouseEvent| import_modal_open.set(false))
     };
 
+    let toggle_theme = {
+        let light = light.clone();
+        Callback::from(move |_: MouseEvent| {
+            let new_val = !*light;
+            apply_theme(new_val);
+            light.set(new_val);
+        })
+    };
+
     let on_export_target_brick_json = {
         let export_target = export_target.clone();
         Callback::from(move |_: MouseEvent| export_target.set(ExportTarget::BrickJson))
@@ -534,6 +584,26 @@ fn app() -> Html {
 
     html! {
         <div class="page">
+            <div class="transfer-toolbar">
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
+                    title="Import"
+                    label="Import"
+                    onclick={on_open_import_modal.clone()}
+                />
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
+                    title="Export"
+                    label="Export"
+                    onclick={on_open_export_modal.clone()}
+                />
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(if *light { MOON_ICON } else { SUN_ICON }))}
+                    title={if *light { "Switch to dark mode" } else { "Switch to light mode" }}
+                    label="Theme"
+                    onclick={toggle_theme.clone()}
+                />
+            </div>
             <div class="page__content">
                 <div class="page__main">
                     <BrickEditor
@@ -541,25 +611,6 @@ fn app() -> Html {
                         dispatcher={brick_dispatcher.clone()}
                         tutorial_dispatcher={tutorial_dispatcher.clone()}
                     />
-                </div>
-                <div class="page__toolbar page__toolbar--middle">
-                    <div class="page__toolbar-group">
-                        <span class="page__toolbar-label">{"Transfer"}</span>
-                        <div data-testid="toolbar-import">
-                        <IconButton
-                            icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                            title="Import"
-                            onclick={on_open_import_modal.clone()}
-                        />
-                    </div>
-                        <div data-testid="toolbar-export">
-                        <IconButton
-                            icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
-                            title="Export"
-                            onclick={on_open_export_modal.clone()}
-                        />
-                    </div>
-                    </div>
                 </div>
                 <Sidebar>
                     <TutorialEditor
