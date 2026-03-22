@@ -7,6 +7,8 @@ pub struct ModalProps {
     pub title: AttrValue,
     #[prop_or_default]
     pub hint: AttrValue,
+    #[prop_or_default]
+    pub class: Classes,
     pub on_close: Callback<MouseEvent>,
     #[prop_or_default]
     pub children: Children,
@@ -30,7 +32,7 @@ pub fn modal(props: &ModalProps) -> Html {
 
     html! {
         <div class="modal-overlay" onclick={on_overlay_click.clone()}>
-            <div class="modal" onclick={on_modal_click}>
+            <div class={classes!("modal", props.class.clone())} onclick={on_modal_click}>
                 <div class="modal__header">
                     <div class="modal__title-row">
                         <div class="modal__title">{props.title.clone()}</div>

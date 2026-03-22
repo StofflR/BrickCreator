@@ -49,3 +49,24 @@
     padding: var(--gap);
     overflow: auto;
 }
+
+.page__toolbar--middle {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-bottom: none;
+    border-left: 1px solid var(--color-border);
+    border-right: 1px solid var(--color-border);
+    padding: 10px 8px;
+    width: 96px;
+    min-width: 96px;
+    background: var(--color-surface-raised);
+    text-align: center;
+}
+
+.page__toolbar--middle .page__toolbar-group {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px;
+}

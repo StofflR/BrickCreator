@@ -74,18 +74,6 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
         })
     };
 
-    let on_save_png = {
-        let brick = props.brick.clone();
-        Callback::from(move |_| match brick.clone().get_png(1920) {
-            Ok(data) => {
-                if let Err(e) = utility::download_png(&data, "brick.png") {
-                    web_sys::console::error_1(&format!("PNG error: {e}").into());
-                }
-            }
-            Err(e) => web_sys::console::error_1(&format!("PNG render error: {e}").into()),
-        })
-    };
-
     html! {
         <div class="brick-settings-wrap">
             <ContentGroup
@@ -93,7 +81,6 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
                 on_content_input={on_content_input}
                 on_add_to_tutorial={props.on_add_to_tutorial.clone()}
                 on_save_svg={on_save_svg}
-                on_save_png={on_save_png}
             />
             <div class="brick-settings__bottom">
                 <ColorsGroup

@@ -6,6 +6,7 @@ use crate::app::editors::tutorial::TutorialEditor;
 use crate::components::sidebar::Sidebar;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
+use crate::components::modal::Modal;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
@@ -26,13 +27,31 @@ use yew::prelude::*;
 #[cfg(target_arch = "wasm32")]
 const ICON_UPLOAD: &str = include_str!("../res/upload.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_FILE_JSON: &str = include_str!("../res/file_json.svg");
-#[cfg(target_arch = "wasm32")]
-const ICON_FILE_PNG: &str = include_str!("../res/file_png.svg");
-#[cfg(target_arch = "wasm32")]
 const ICON_DOWNLOAD: &str = include_str!("../res/download.svg");
+
 #[cfg(target_arch = "wasm32")]
-const ICON_NINEPATCH: &str = include_str!("../res/ninepatch_9.svg");
+#[derive(Clone, Copy, PartialEq)]
+enum ExportTarget {
+    BrickJson,
+    TutorialJson,
+    TutorialPng,
+    BrickPng,
+    BricksZip,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone, Copy, PartialEq)]
+enum BricksZipTarget {
+    All,
+    Ninepatch,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone, Copy, PartialEq)]
+enum ImportTarget {
+    BrickJson,
+    TutorialJson,
+}
 
 #[cfg(target_arch = "wasm32")]
 #[function_component(App)]
@@ -45,12 +64,18 @@ fn app() -> Html {
     let ninepatch_url = use_state(|| Option::<String>::None);
     let ninepatch_rendering = use_state(|| false);
 
+    let export_modal_open = use_state(|| false);
+    let import_modal_open = use_state(|| false);
+    let export_target = use_state(|| ExportTarget::BrickJson);
+    let export_bricks_target = use_state(|| BricksZipTarget::All);
+    let import_target = use_state(|| ImportTarget::BrickJson);
+
     let brick_dispatcher = brick.dispatcher();
     let tutorial_dispatcher = tutorial.dispatcher();
 
-    let on_import_brick_json = {
+    let import_brick_json = {
         let dispatcher = brick_dispatcher.clone();
-        Callback::from(move |_: MouseEvent| {
+        Callback::from(move |_: ()| {
             let dispatcher = dispatcher.clone();
             utility::upload_json(Callback::from(move |text: String| {
                 dispatcher.dispatch(StateAction::LoadJson(text));
@@ -58,9 +83,9 @@ fn app() -> Html {
         })
     };
 
-    let on_export_brick_json = {
+    let export_brick_json = {
         let brick_state = (*brick).clone();
-        Callback::from(move |_: MouseEvent| {
+        Callback::from(move |_: ()| {
             let json = brick_state.to_string();
             if let Err(e) = utility::download_json(&json, "brick.json") {
                 web_sys::console::error_1(&format!("Export error: {e}").into());
@@ -68,9 +93,9 @@ fn app() -> Html {
         })
     };
 
-    let on_import_tutorial_json = {
+    let import_tutorial_json = {
         let dispatcher = tutorial_dispatcher.clone();
-        Callback::from(move |_: MouseEvent| {
+        Callback::from(move |_: ()| {
             let dispatcher = dispatcher.clone();
             utility::upload_json(Callback::from(move |text: String| {
                 dispatcher.dispatch(TutorialAction::LoadJson(text));
@@ -78,9 +103,9 @@ fn app() -> Html {
         })
     };
 
-    let on_export_tutorial_json = {
+    let export_tutorial_json = {
         let tutorial_state = (*tutorial).clone();
-        Callback::from(move |_: MouseEvent| {
+        Callback::from(move |_: ()| {
             let json = tutorial_state.to_json();
             if let Err(e) = utility::download_json(&json, "tutorial.json") {
                 web_sys::console::error_1(&format!("Export error: {e}").into());
@@ -88,9 +113,9 @@ fn app() -> Html {
         })
     };
 
-    let on_save_tutorial_png = {
+    let save_tutorial_png = {
         let tutorial_state = (*tutorial).clone();
-        Callback::from(move |_: MouseEvent| match tutorial_state.get_png_bytes(1920) {
+        Callback::from(move |_: ()| match tutorial_state.get_png_bytes(1920) {
             Ok(data) => {
                 if let Err(e) = utility::download_png(&data, "tutorial.png") {
                     web_sys::console::error_1(&format!("PNG error: {e}").into());
@@ -100,10 +125,22 @@ fn app() -> Html {
         })
     };
 
-    let on_export_all_bricks_png = {
+    let save_brick_png = {
+        let brick_state = (*brick).clone();
+        Callback::from(move |_: ()| match brick_state.clone().get_png(1920) {
+            Ok(data) => {
+                if let Err(e) = utility::download_png(&data, "brick.png") {
+                    web_sys::console::error_1(&format!("PNG error: {e}").into());
+                }
+            }
+            Err(e) => web_sys::console::error_1(&format!("PNG render error: {e}").into()),
+        })
+    };
+
+    let export_all_bricks_png = {
         let all_bricks_url = all_bricks_url.clone();
         let all_bricks_rendering = all_bricks_rendering.clone();
-        Callback::from(move |_: MouseEvent| {
+        Callback::from(move |_: ()| {
             if *all_bricks_rendering {
                 return;
             }
@@ -148,7 +185,7 @@ fn app() -> Html {
             }
 
             all_bricks_rendering.set(true);
-            match catalog::render_all_bricks_zip_bytes(300) {
+            match catalog::render_all_bricks_zip_bytes(1920) {
                 Ok(data) => {
                     let uint8 = js_sys::Uint8Array::from(data.as_slice());
                     let parts = js_sys::Array::new();
@@ -218,10 +255,10 @@ fn app() -> Html {
         })
     };
 
-    let on_export_ninepatch_zip = {
+    let export_ninepatch_zip = {
         let ninepatch_url = ninepatch_url.clone();
         let ninepatch_rendering = ninepatch_rendering.clone();
-        Callback::from(move |_: MouseEvent| {
+        Callback::from(move |_: ()| {
             if *ninepatch_rendering {
                 return;
             }
@@ -334,7 +371,6 @@ fn app() -> Html {
         })
     };
 
-
     let all_bricks_ready = (*all_bricks_url).is_some();
     let ninepatch_ready = (*ninepatch_url).is_some();
 
@@ -354,53 +390,150 @@ fn app() -> Html {
         "Render 9-patch ZIP"
     };
 
+    let export_action_label = match *export_target {
+        ExportTarget::BrickJson => "Export Brick JSON",
+        ExportTarget::TutorialJson => "Export Tutorial JSON",
+        ExportTarget::TutorialPng => "Export Tutorial PNG",
+        ExportTarget::BrickPng => "Export Brick PNG",
+        ExportTarget::BricksZip => "Render Bricks ZIP",
+    };
+
+    let export_action_hint = match *export_target {
+        ExportTarget::BrickJson => "Exports the current brick as JSON.",
+        ExportTarget::TutorialJson => "Exports the current tutorial as JSON.",
+        ExportTarget::TutorialPng => "Exports the tutorial PNG at 1920px.",
+        ExportTarget::BrickPng => "Exports the current brick PNG at 1920px.",
+        ExportTarget::BricksZip => match *export_bricks_target {
+            BricksZipTarget::All => all_bricks_title,
+            BricksZipTarget::Ninepatch => ninepatch_title,
+        },
+    };
+
+    let export_busy = matches!(*export_target, ExportTarget::BricksZip)
+        && match *export_bricks_target {
+            BricksZipTarget::All => *all_bricks_rendering,
+            BricksZipTarget::Ninepatch => *ninepatch_rendering,
+        };
+
+    let import_action_label = match *import_target {
+        ImportTarget::BrickJson => "Import Brick JSON",
+        ImportTarget::TutorialJson => "Import Tutorial JSON",
+    };
+
+    let on_open_export_modal = {
+        let export_modal_open = export_modal_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
+            export_modal_open.set(true);
+        })
+    };
+
+    let on_close_export_modal = {
+        let export_modal_open = export_modal_open.clone();
+        Callback::from(move |_: MouseEvent| export_modal_open.set(false))
+    };
+
+    let on_open_import_modal = {
+        let import_modal_open = import_modal_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
+            import_modal_open.set(true);
+        })
+    };
+
+    let on_close_import_modal = {
+        let import_modal_open = import_modal_open.clone();
+        Callback::from(move |_: MouseEvent| import_modal_open.set(false))
+    };
+
+    let on_export_target_brick_json = {
+        let export_target = export_target.clone();
+        Callback::from(move |_: MouseEvent| export_target.set(ExportTarget::BrickJson))
+    };
+
+    let on_export_target_tutorial_json = {
+        let export_target = export_target.clone();
+        Callback::from(move |_: MouseEvent| export_target.set(ExportTarget::TutorialJson))
+    };
+
+    let on_export_target_tutorial_png = {
+        let export_target = export_target.clone();
+        Callback::from(move |_: MouseEvent| export_target.set(ExportTarget::TutorialPng))
+    };
+
+    let on_export_target_brick_png = {
+        let export_target = export_target.clone();
+        Callback::from(move |_: MouseEvent| export_target.set(ExportTarget::BrickPng))
+    };
+
+    let on_export_target_bricks_zip = {
+        let export_target = export_target.clone();
+        Callback::from(move |_: MouseEvent| export_target.set(ExportTarget::BricksZip))
+    };
+
+    let on_export_bricks_target_all = {
+        let export_bricks_target = export_bricks_target.clone();
+        Callback::from(move |_: MouseEvent| export_bricks_target.set(BricksZipTarget::All))
+    };
+
+    let on_export_bricks_target_ninepatch = {
+        let export_bricks_target = export_bricks_target.clone();
+        Callback::from(move |_: MouseEvent| export_bricks_target.set(BricksZipTarget::Ninepatch))
+    };
+
+    let on_import_target_brick_json = {
+        let import_target = import_target.clone();
+        Callback::from(move |_: MouseEvent| import_target.set(ImportTarget::BrickJson))
+    };
+
+    let on_import_target_tutorial_json = {
+        let import_target = import_target.clone();
+        Callback::from(move |_: MouseEvent| import_target.set(ImportTarget::TutorialJson))
+    };
+
+    let on_confirm_export = {
+        let export_target = export_target.clone();
+        let export_bricks_target = export_bricks_target.clone();
+        let export_modal_open = export_modal_open.clone();
+        let export_brick_json = export_brick_json.clone();
+        let export_tutorial_json = export_tutorial_json.clone();
+        let save_tutorial_png = save_tutorial_png.clone();
+        let save_brick_png = save_brick_png.clone();
+        let export_all_bricks_png = export_all_bricks_png.clone();
+        let export_ninepatch_zip = export_ninepatch_zip.clone();
+        Callback::from(move |_: MouseEvent| {
+            match *export_target {
+                ExportTarget::BrickJson => export_brick_json.emit(()),
+                ExportTarget::TutorialJson => export_tutorial_json.emit(()),
+                ExportTarget::TutorialPng => save_tutorial_png.emit(()),
+                ExportTarget::BrickPng => save_brick_png.emit(()),
+                ExportTarget::BricksZip => match *export_bricks_target {
+                    BricksZipTarget::All => export_all_bricks_png.emit(()),
+                    BricksZipTarget::Ninepatch => export_ninepatch_zip.emit(()),
+                },
+            }
+            export_modal_open.set(false);
+        })
+    };
+
+    let on_confirm_import = {
+        let import_target = import_target.clone();
+        let import_modal_open = import_modal_open.clone();
+        let import_brick_json = import_brick_json.clone();
+        let import_tutorial_json = import_tutorial_json.clone();
+        Callback::from(move |_: MouseEvent| {
+            match *import_target {
+                ImportTarget::BrickJson => import_brick_json.emit(()),
+                ImportTarget::TutorialJson => import_tutorial_json.emit(()),
+            }
+            import_modal_open.set(false);
+        })
+    };
+
     html! {
         <div class="page">
-            <div class="page__toolbar">
-                <div class="page__toolbar-group">
-                    <span class="page__toolbar-label">{"Brick"}</span>
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                        title="Import Brick JSON"
-                        onclick={on_import_brick_json.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_JSON))}
-                        title="Export Brick JSON"
-                        onclick={on_export_brick_json.clone()}
-                    />
-                </div>
-                <div class="page__toolbar-group">
-                    <span class="page__toolbar-label">{"Tutorial"}</span>
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                        title="Import Tutorial JSON"
-                        onclick={on_import_tutorial_json.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_JSON))}
-                        title="Export Tutorial JSON"
-                        onclick={on_export_tutorial_json.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_PNG))}
-                        title="Save Tutorial PNG"
-                        onclick={on_save_tutorial_png.clone()}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
-                        title={all_bricks_title}
-                        onclick={on_export_all_bricks_png.clone()}
-                        disabled={*all_bricks_rendering}
-                    />
-                    <IconButton
-                        icon={Html::from_html_unchecked(AttrValue::from(ICON_NINEPATCH))}
-                        title={ninepatch_title}
-                        onclick={on_export_ninepatch_zip.clone()}
-                        disabled={*ninepatch_rendering}
-                    />
-                </div>
-            </div>
             <div class="page__content">
                 <div class="page__main">
                     <BrickEditor
@@ -408,6 +541,25 @@ fn app() -> Html {
                         dispatcher={brick_dispatcher.clone()}
                         tutorial_dispatcher={tutorial_dispatcher.clone()}
                     />
+                </div>
+                <div class="page__toolbar page__toolbar--middle">
+                    <div class="page__toolbar-group">
+                        <span class="page__toolbar-label">{"Transfer"}</span>
+                        <div data-testid="toolbar-import">
+                        <IconButton
+                            icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
+                            title="Import"
+                            onclick={on_open_import_modal.clone()}
+                        />
+                    </div>
+                        <div data-testid="toolbar-export">
+                        <IconButton
+                            icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
+                            title="Export"
+                            onclick={on_open_export_modal.clone()}
+                        />
+                    </div>
+                    </div>
                 </div>
                 <Sidebar>
                     <TutorialEditor
@@ -418,6 +570,140 @@ fn app() -> Html {
                     />
                 </Sidebar>
             </div>
+            if *import_modal_open {
+                <div data-testid="import-modal">
+                <Modal
+                    title="Import"
+                    hint="Choose what to import"
+                    on_close={on_close_import_modal.clone()}
+                    class={classes!("modal--compact")}
+                >
+                    <div class="transfer-modal">
+                        <div class="transfer-modal__group">
+                            <div class="transfer-modal__label">{"Target"}</div>
+                            <label class="transfer-modal__option" onclick={on_import_target_brick_json.clone()}>
+                                <input
+                                    type="radio"
+                                    id="import-brick-json" data-testid="import-brick-json"
+                                    name="import-target"
+                                    checked={*import_target == ImportTarget::BrickJson}
+                                />
+                                <span>{"Brick JSON"}</span>
+                            </label>
+                            <label class="transfer-modal__option" onclick={on_import_target_tutorial_json.clone()}>
+                                <input
+                                    type="radio"
+                                    id="import-tutorial-json" data-testid="import-tutorial-json"
+                                    name="import-target"
+                                    checked={*import_target == ImportTarget::TutorialJson}
+                                />
+                                <span>{"Tutorial JSON"}</span>
+                            </label>
+                        </div>
+                        <button
+                            class="transfer-modal__action"
+                            type="button"
+                            onclick={on_confirm_import.clone()}
+                        >
+                            {import_action_label}
+                        </button>
+                    </div>
+                </Modal>
+                </div>
+            }
+            if *export_modal_open {
+                <div data-testid="export-modal">
+                <Modal
+                    title="Export"
+                    hint="Choose a format"
+                    on_close={on_close_export_modal.clone()}
+                    class={classes!("modal--compact")}
+                >
+                    <div class="transfer-modal">
+                        <div class="transfer-modal__group">
+                            <div class="transfer-modal__label">{"Format"}</div>
+                            <label class="transfer-modal__option" onclick={on_export_target_brick_json.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-brick-json" data-testid="export-brick-json"
+                                    name="export-target"
+                                    checked={*export_target == ExportTarget::BrickJson}
+                                />
+                                <span>{"Brick JSON"}</span>
+                            </label>
+                            <label class="transfer-modal__option" onclick={on_export_target_tutorial_json.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-tutorial-json" data-testid="export-tutorial-json"
+                                    name="export-target"
+                                    checked={*export_target == ExportTarget::TutorialJson}
+                                />
+                                <span>{"Tutorial JSON"}</span>
+                            </label>
+                            <label class="transfer-modal__option" onclick={on_export_target_tutorial_png.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-tutorial-png" data-testid="export-tutorial-png"
+                                    name="export-target"
+                                    checked={*export_target == ExportTarget::TutorialPng}
+                                />
+                                <span>{"Tutorial PNG"}</span>
+                            </label>
+                            <label class="transfer-modal__option" onclick={on_export_target_brick_png.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-brick-png" data-testid="export-brick-png"
+                                    name="export-target"
+                                    checked={*export_target == ExportTarget::BrickPng}
+                                />
+                                <span>{"Brick PNG"}</span>
+                            </label>
+                            <label class="transfer-modal__option" onclick={on_export_target_bricks_zip.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-bricks-zip" data-testid="export-bricks-zip"
+                                    name="export-target"
+                                    checked={*export_target == ExportTarget::BricksZip}
+                                />
+                                <span>{"Bricks ZIP"}</span>
+                            </label>
+                        </div>
+                        <div class="transfer-modal__group">
+                            <div class="transfer-modal__label">{"Brick set"}</div>
+                            <label class="transfer-modal__option" onclick={on_export_bricks_target_all.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-bricks-all" data-testid="export-bricks-all"
+                                    name="brick-set"
+                                    checked={*export_bricks_target == BricksZipTarget::All}
+                                />
+                                <span>{"All bricks"}</span>
+                            </label>
+                            <label class="transfer-modal__option" onclick={on_export_bricks_target_ninepatch.clone()}>
+                                <input
+                                    type="radio"
+                                    id="export-bricks-ninepatch" data-testid="export-bricks-ninepatch"
+                                    name="brick-set"
+                                    checked={*export_bricks_target == BricksZipTarget::Ninepatch}
+                                />
+                                <span>{"9-patch bricks"}</span>
+                            </label>
+                        </div>
+                        if !export_action_hint.is_empty() {
+                            <div class="transfer-modal__hint">{export_action_hint}</div>
+                        }
+                        <button
+                            class="transfer-modal__action"
+                            type="button"
+                            onclick={on_confirm_export.clone()}
+                            disabled={export_busy}
+                        >
+                            {export_action_label}
+                        </button>
+                    </div>
+                </Modal>
+                </div>
+            }
         </div>
     }
 }
