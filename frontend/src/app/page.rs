@@ -542,26 +542,26 @@ fn app() -> Html {
                         tutorial_dispatcher={tutorial_dispatcher.clone()}
                     />
                 </div>
-                <div class="page__toolbar page__toolbar--middle">
-                    <div class="page__toolbar-group">
-                        <span class="page__toolbar-label">{"Transfer"}</span>
-                        <div data-testid="toolbar-import">
-                        <IconButton
-                            icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                            title="Import"
-                            onclick={on_open_import_modal.clone()}
-                        />
-                    </div>
-                        <div data-testid="toolbar-export">
-                        <IconButton
-                            icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
-                            title="Export"
-                            onclick={on_open_export_modal.clone()}
-                        />
-                    </div>
-                    </div>
-                </div>
-                <Sidebar>
+                <Sidebar
+                    strip_controls={html! {
+                        <>
+                            <div data-testid="toolbar-import">
+                                <IconButton
+                                    icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
+                                    title="Import"
+                                    onclick={on_open_import_modal.clone()}
+                                />
+                            </div>
+                            <div data-testid="toolbar-export">
+                                <IconButton
+                                    icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
+                                    title="Export"
+                                    onclick={on_open_export_modal.clone()}
+                                />
+                            </div>
+                        </>
+                    }}
+                >
                     <TutorialEditor
                         brick={(*brick).clone()}
                         brick_dispatcher={brick_dispatcher.clone()}

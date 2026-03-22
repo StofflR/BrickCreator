@@ -48,6 +48,8 @@ fn apply_theme(light: bool) {
 #[derive(Properties, PartialEq)]
 pub struct SidebarProps {
     pub children: Html,
+    #[prop_or_default]
+    pub strip_controls: Html,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -171,6 +173,9 @@ pub fn sidebar(props: &SidebarProps) -> Html {
                 <button class="sidebar-toggle" onclick={toggle} type="button">
                     { chevron_icon }
                 </button>
+                <div class="sidebar-strip__controls">
+                    { props.strip_controls.clone() }
+                </div>
                 <button
                     class="sidebar-toggle sidebar-theme-toggle"
                     onclick={toggle_theme}
