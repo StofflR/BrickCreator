@@ -33,6 +33,8 @@ const ICON_DOWNLOAD: &str = include_str!("../res/download.svg");
 const SUN_ICON: &str = include_str!("../res/sun.svg");
 #[cfg(target_arch = "wasm32")]
 const MOON_ICON: &str = include_str!("../res/moon.svg");
+#[cfg(target_arch = "wasm32")]
+const MENU_ICON: &str = include_str!("../res/menu_dots.svg");
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Clone, Copy, PartialEq)]
@@ -101,9 +103,11 @@ fn app() -> Html {
 
     let export_modal_open = use_state(|| false);
     let import_modal_open = use_state(|| false);
+    let help_modal_open = use_state(|| false);
     let export_target = use_state(|| ExportTarget::BrickJson);
     let export_bricks_target = use_state(|| BricksZipTarget::All);
     let import_target = use_state(|| ImportTarget::BrickJson);
+    let menu_open = use_state(|| false);
 
     let light = use_state(|| {
         let saved = load_saved_theme();
@@ -461,27 +465,9 @@ fn app() -> Html {
         ImportTarget::TutorialJson => "Import Tutorial JSON",
     };
 
-    let on_open_export_modal = {
-        let export_modal_open = export_modal_open.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-            e.stop_propagation();
-            export_modal_open.set(true);
-        })
-    };
-
     let on_close_export_modal = {
         let export_modal_open = export_modal_open.clone();
         Callback::from(move |_: MouseEvent| export_modal_open.set(false))
-    };
-
-    let on_open_import_modal = {
-        let import_modal_open = import_modal_open.clone();
-        Callback::from(move |e: MouseEvent| {
-            e.prevent_default();
-            e.stop_propagation();
-            import_modal_open.set(true);
-        })
     };
 
     let on_close_import_modal = {
@@ -489,13 +475,78 @@ fn app() -> Html {
         Callback::from(move |_: MouseEvent| import_modal_open.set(false))
     };
 
-    let toggle_theme = {
-        let light = light.clone();
+    let on_page_click = {
+        let menu_open = menu_open.clone();
         Callback::from(move |_: MouseEvent| {
+            if *menu_open {
+                menu_open.set(false);
+            }
+        })
+    };
+
+    let on_menu_container_click = Callback::from(|e: MouseEvent| {
+        e.stop_propagation();
+    });
+
+    let on_toggle_menu = {
+        let menu_open = menu_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
+            let is_open = *menu_open;
+            menu_open.set(!is_open);
+        })
+    };
+
+    let on_menu_open_export = {
+        let export_modal_open = export_modal_open.clone();
+        let menu_open = menu_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
+            export_modal_open.set(true);
+            menu_open.set(false);
+        })
+    };
+
+    let on_menu_open_import = {
+        let import_modal_open = import_modal_open.clone();
+        let menu_open = menu_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
+            import_modal_open.set(true);
+            menu_open.set(false);
+        })
+    };
+
+    let on_menu_toggle_theme = {
+        let light = light.clone();
+        let menu_open = menu_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
             let new_val = !*light;
             apply_theme(new_val);
             light.set(new_val);
+            menu_open.set(false);
         })
+    };
+
+    let on_open_help_modal = {
+        let help_modal_open = help_modal_open.clone();
+        let menu_open = menu_open.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            e.stop_propagation();
+            help_modal_open.set(true);
+            menu_open.set(false);
+        })
+    };
+
+    let on_close_help_modal = {
+        let help_modal_open = help_modal_open.clone();
+        Callback::from(move |_: MouseEvent| help_modal_open.set(false))
     };
 
     let on_export_target_brick_json = {
@@ -583,26 +634,32 @@ fn app() -> Html {
     };
 
     html! {
-        <div class="page">
+        <div class="page" onclick={on_page_click}>
             <div class="transfer-toolbar">
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                    title="Import"
-                    label="Import"
-                    onclick={on_open_import_modal.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
-                    title="Export"
-                    label="Export"
-                    onclick={on_open_export_modal.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(if *light { MOON_ICON } else { SUN_ICON }))}
-                    title={if *light { "Switch to dark mode" } else { "Switch to light mode" }}
-                    label="Theme"
-                    onclick={toggle_theme.clone()}
-                />
+                <div class="transfer-toolbar__menu" onclick={on_menu_container_click.clone()}>
+                    <IconButton
+                        icon={Html::from_html_unchecked(AttrValue::from(MENU_ICON))}
+                        title="Menu"
+                        label="Menu"
+                        onclick={on_toggle_menu.clone()}
+                    />
+                    if *menu_open {
+                        <div class="menu-dropdown">
+                            <button class="menu-dropdown__item" type="button" onclick={on_menu_open_import.clone()}>
+                                {"Import"}
+                            </button>
+                            <button class="menu-dropdown__item" type="button" onclick={on_menu_open_export.clone()}>
+                                {"Export"}
+                            </button>
+                            <button class="menu-dropdown__item" type="button" onclick={on_menu_toggle_theme.clone()}>
+                                {if *light { "Dark mode" } else { "Light mode" }}
+                            </button>
+                            <button class="menu-dropdown__item" type="button" onclick={on_open_help_modal.clone()}>
+                                {"Help"}
+                            </button>
+                        </div>
+                    }
+                </div>
             </div>
             <div class="page__content">
                 <div class="page__main">
@@ -620,6 +677,32 @@ fn app() -> Html {
                         tutorial_dispatcher={tutorial_dispatcher.clone()}
                     />
                 </Sidebar>
+            </div>
+            <div class="menu-toolbar">
+                <div class="menu-toolbar__menu" onclick={on_menu_container_click.clone()}>
+                    <IconButton
+                        icon={Html::from_html_unchecked(AttrValue::from(MENU_ICON))}
+                        title="Menu"
+                        label="Menu"
+                        onclick={on_toggle_menu.clone()}
+                    />
+                    if *menu_open {
+                        <div class="menu-dropdown">
+                            <button class="menu-dropdown__item" type="button" onclick={on_menu_open_import.clone()}>
+                                {"Import"}
+                            </button>
+                            <button class="menu-dropdown__item" type="button" onclick={on_menu_open_export.clone()}>
+                                {"Export"}
+                            </button>
+                            <button class="menu-dropdown__item" type="button" onclick={on_menu_toggle_theme.clone()}>
+                                {if *light { "Dark mode" } else { "Light mode" }}
+                            </button>
+                            <button class="menu-dropdown__item" type="button" onclick={on_open_help_modal.clone()}>
+                                {"Help"}
+                            </button>
+                        </div>
+                    }
+                </div>
             </div>
             if *import_modal_open {
                 <div data-testid="import-modal">
@@ -751,6 +834,31 @@ fn app() -> Html {
                         >
                             {export_action_label}
                         </button>
+                    </div>
+                </Modal>
+                </div>
+            }
+            if *help_modal_open {
+                <div data-testid="help-modal">
+                <Modal
+                    title="Help"
+                    hint="Quick tips"
+                    on_close={on_close_help_modal.clone()}
+                    class={classes!("modal--compact")}
+                >
+                    <div class="help-modal">
+                        <div class="help-modal__item">
+                            <div class="help-modal__title">{"Import / Export"}</div>
+                            <div class="help-modal__text">
+                                {"Use JSON for edits and PNG for previews. Bricks ZIP renders a full set."}
+                            </div>
+                        </div>
+                        <div class="help-modal__item">
+                            <div class="help-modal__title">{"Theme"}</div>
+                            <div class="help-modal__text">
+                                {"Switch between light and dark mode from the menu or toolbar."}
+                            </div>
+                        </div>
                     </div>
                 </Modal>
                 </div>
