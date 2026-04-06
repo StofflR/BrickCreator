@@ -54,7 +54,7 @@
     width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 10px;
     padding: 10px var(--gap);
     border-bottom: 1px solid var(--color-border);
@@ -64,7 +64,7 @@
 
 @media (max-width: 900px) {
     .transfer-toolbar {
-    width: 100%;
+        width: 100%;
         order: 2;
         border-bottom: none;
         border-top: 1px solid var(--color-border);
@@ -72,21 +72,31 @@
         bottom: 0;
         z-index: 30;
         padding-bottom: calc(10px + env(safe-area-inset-bottom));
-        background: #f3c1d9;
-        color: #1a1a1a;
+        justify-content: center;
+        background: var(--color-surface-raised);
+        color: var(--color-text);
     }
     .page__content {
         order: 1;
+        height: calc(100dvh - 56px);
+        min-height: 0;
         padding-bottom: 56px;
+    }
+    .page__main {
+        flex: 1 1 auto;
+        height: 100%;
+        min-height: 0;
+        overflow: auto;
+        padding-right: calc(var(--gap) + var(--toggle-width));
     }
 }
 
 @media (max-width: 900px) {
     .transfer-toolbar .icon-button {
-        color: #1a1a1a;
-        border-color: rgba(0, 0, 0, 0.2);
+        color: var(--color-text);
+        border-color: var(--color-border);
     }
     .transfer-toolbar .icon-button:hover {
-        background: rgba(0, 0, 0, 0.08);
+        background: var(--color-border);
     }
 }

@@ -73,3 +73,19 @@
     font-size: 11px;
     text-align: center;
 }
+
+@media (max-width: 900px) {
+    .card {
+        width: 100%;
+        min-height: 72px;
+        height: 100%;
+        padding: 8px 10px;
+    }
+    .card-title {
+        font-size: 12px;
+        margin-bottom: 2px;
+    }
+    .card-label {
+        font-size: 10px;
+    }
+}

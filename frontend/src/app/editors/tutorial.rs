@@ -22,6 +22,16 @@ pub struct TutorialEditorProps {
     pub brick_dispatcher: UseReducerDispatcher<BrickState>,
     pub tutorial: TutorialViewState,
     pub tutorial_dispatcher: UseReducerDispatcher<TutorialViewState>,
+    pub export_selection: Vec<bool>,
+    pub on_toggle_export: Callback<usize>,
+    pub export_mode: bool,
+    pub selected_count: usize,
+    pub total_bricks: usize,
+    pub on_export_select_all: Callback<MouseEvent>,
+    pub on_export_clear: Callback<MouseEvent>,
+    pub on_export_json: Callback<MouseEvent>,
+    pub on_export_png: Callback<MouseEvent>,
+    pub on_exit_export: Callback<MouseEvent>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -118,6 +128,16 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                     {has_selection}
                     show_preview={preview}
                 />
+                if props.export_mode {
+                    <div class="tutorial-view__export-bar">
+                        <div class="tutorial-view__export-label">{format!("Selected {} of {}", props.selected_count, props.total_bricks)}</div>
+                        <button type="button" onclick={props.on_export_select_all.clone()} disabled={props.total_bricks == 0}>{"Select all"}</button>
+                        <button type="button" onclick={props.on_export_clear.clone()} disabled={props.total_bricks == 0}>{"Clear"}</button>
+                        <button type="button" onclick={props.on_export_json.clone()} disabled={props.selected_count == 0}>{"Export JSON"}</button>
+                        <button type="button" onclick={props.on_export_png.clone()} disabled={props.selected_count == 0}>{"Export PNG"}</button>
+                        <button type="button" onclick={props.on_exit_export.clone()}>{"Done"}</button>
+                    </div>
+                }
                 if preview {
                     <TutorialPreviewView preview_data={preview_data} />
                 } else {
@@ -126,6 +146,9 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                         selected_index={selected_index}
                         on_select={on_select}
                         on_move={on_move}
+                        export_selection={props.export_selection.clone()}
+                        on_toggle_export={props.on_toggle_export.clone()}
+                        export_mode={props.export_mode}
                     />
                 }
             </div>

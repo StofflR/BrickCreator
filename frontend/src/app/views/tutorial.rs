@@ -22,6 +22,9 @@ pub struct TutorialEditViewProps {
     pub selected_index: Option<usize>,
     pub on_select: Callback<usize>,
     pub on_move: Callback<(usize, usize)>,
+    pub export_selection: Vec<bool>,
+    pub on_toggle_export: Callback<usize>,
+    pub export_mode: bool,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -96,6 +99,21 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                         html_nested! {
                             <DragDropItem>
                                 <div class="brick-row">
+
+                                    if props.export_mode {
+                                        <label class="brick-export" onclick={{
+                                            let on_toggle_export = props.on_toggle_export.clone();
+                                            move |event: MouseEvent| {
+                                                event.stop_propagation();
+                                                on_toggle_export.emit(idx);
+                                            }
+                                        }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={props.export_selection.get(idx).copied().unwrap_or(false)}
+                                            />
+                                        </label>
+                                    }
 
                                     <div class="brick-controls">
                                         {
