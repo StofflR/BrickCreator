@@ -8,6 +8,8 @@ use crate::components::sidebar::Sidebar;
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
+use crate::interfaces::catalog;
+use crate::interfaces::ninepatch;
 #[cfg(target_arch = "wasm32")]
 #[cfg(target_arch = "wasm32")]
 #[cfg(target_arch = "wasm32")]
@@ -16,6 +18,8 @@ use crate::interfaces::tutorial::{tutorial_from_states, tutorial_png_bytes, Tuto
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
 use shared::tutorial::Tutorial;
+use wasm_bindgen::JsCast;
+use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 #[cfg(target_arch = "wasm32")]
 #[cfg(target_arch = "wasm32")]
 #[cfg(target_arch = "wasm32")]
@@ -25,6 +29,10 @@ use yew::prelude::*;
 const ICON_UPLOAD: &str = include_str!("../res/upload.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_DOWNLOAD: &str = include_str!("../res/download.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_EXPORT_ALL_BRICKS: &str = "<span class='icon-text'>B</span>";
+#[cfg(target_arch = "wasm32")]
+const ICON_EXPORT_NINEPATCH: &str = "<span class='icon-text'>9</span>";
 
 #[cfg(target_arch = "wasm32")]
 const SUN_ICON: &str = include_str!("../res/sun.svg");
@@ -68,6 +76,10 @@ fn app() -> Html {
     let tutorial = use_reducer(TutorialViewState::default);
 
     let export_mode = use_state(|| false);
+    let all_bricks_url = use_state(|| Option::<String>::None);
+    let all_bricks_rendering = use_state(|| false);
+    let ninepatch_url = use_state(|| Option::<String>::None);
+    let ninepatch_rendering = use_state(|| false);
     let light = use_state(|| {
         let saved = load_saved_theme();
         apply_theme(saved);
@@ -204,6 +216,112 @@ fn app() -> Html {
         })
     };
 
+    let export_all_bricks_zip = {
+        let all_bricks_url = all_bricks_url.clone();
+        let all_bricks_rendering = all_bricks_rendering.clone();
+        Callback::from(move |_: MouseEvent| {
+            if *all_bricks_rendering {
+                return;
+            }
+            if let Some(url) = (*all_bricks_url).clone() {
+                if let Some(window) = web_sys::window() {
+                    if let Some(document) = window.document() {
+                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
+                            anchor.set_href(&url);
+                            anchor.set_download("all_bricks.zip");
+                            let _ = anchor.click();
+                            return;
+                        }
+                    }
+                }
+            }
+            all_bricks_rendering.set(true);
+            match catalog::render_all_bricks_zip_bytes(192) {
+                Ok(data) => {
+                    let uint8 = js_sys::Uint8Array::from(&data[..]);
+                    let parts = js_sys::Array::new();
+                    parts.push(&uint8.buffer());
+                    let mut opts = BlobPropertyBag::new();
+                    #[allow(deprecated)]
+                    opts.type_("application/zip");
+                    match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
+                        Ok(blob) => match Url::create_object_url_with_blob(&blob) {
+                            Ok(url) => {
+                                all_bricks_url.set(Some(url.clone()));
+                                if let Some(window) = web_sys::window() {
+                                    if let Some(document) = window.document() {
+                                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
+                                            anchor.set_href(&url);
+                                            anchor.set_download("all_bricks.zip");
+                                            let _ = anchor.click();
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => web_sys::console::error_1(&format!("All bricks URL error: {e:?}").into()),
+                        },
+                        Err(e) => web_sys::console::error_1(&format!("All bricks blob error: {e:?}").into()),
+                    }
+                }
+                Err(e) => web_sys::console::error_1(&format!("All bricks render error: {e}").into()),
+            }
+            all_bricks_rendering.set(false);
+        })
+    };
+
+    let export_ninepatch_zip = {
+        let ninepatch_url = ninepatch_url.clone();
+        let ninepatch_rendering = ninepatch_rendering.clone();
+        Callback::from(move |_: MouseEvent| {
+            if *ninepatch_rendering {
+                return;
+            }
+            if let Some(url) = (*ninepatch_url).clone() {
+                if let Some(window) = web_sys::window() {
+                    if let Some(document) = window.document() {
+                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
+                            anchor.set_href(&url);
+                            anchor.set_download("ninepatch_bricks.zip");
+                            let _ = anchor.click();
+                            return;
+                        }
+                    }
+                }
+            }
+            ninepatch_rendering.set(true);
+            match ninepatch::render_ninepatch_zip_bytes() {
+                Ok(data) => {
+                    let uint8 = js_sys::Uint8Array::from(&data[..]);
+                    let parts = js_sys::Array::new();
+                    parts.push(&uint8.buffer());
+                    let mut opts = BlobPropertyBag::new();
+                    #[allow(deprecated)]
+                    opts.type_("application/zip");
+                    match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
+                        Ok(blob) => match Url::create_object_url_with_blob(&blob) {
+                            Ok(url) => {
+                                ninepatch_url.set(Some(url.clone()));
+                                if let Some(window) = web_sys::window() {
+                                    if let Some(document) = window.document() {
+                                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
+                                            anchor.set_href(&url);
+                                            anchor.set_download("ninepatch_bricks.zip");
+                                            let _ = anchor.click();
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => web_sys::console::error_1(&format!("Ninepatch URL error: {e:?}").into()),
+                        },
+                        Err(e) => web_sys::console::error_1(&format!("Ninepatch blob error: {e:?}").into()),
+                    }
+                }
+                Err(e) => web_sys::console::error_1(&format!("Ninepatch render error: {e}").into()),
+            }
+            ninepatch_rendering.set(false);
+        })
+    };
+
     let on_enter_export_mode = {
         let export_mode = export_mode.clone();
         Callback::from(move |e: MouseEvent| {
@@ -252,6 +370,18 @@ fn app() -> Html {
                     title="Export"
                     label="Export"
                     onclick={on_enter_export_mode.clone()}
+                />
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_EXPORT_ALL_BRICKS))}
+                    title="Render All Bricks ZIP"
+                    label="All ZIP"
+                    onclick={export_all_bricks_zip.clone()}
+                />
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_EXPORT_NINEPATCH))}
+                    title="Render 9-patch ZIP"
+                    label="9-patch ZIP"
+                    onclick={export_ninepatch_zip.clone()}
                 />
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(if *light { MOON_ICON } else { SUN_ICON }))}

@@ -40,5 +40,6 @@ html, body {
 @media (max-width: 900px) {
     :root {
         --sidebar-width: 100vw;
+        --toggle-width: 42px;
     }
 }

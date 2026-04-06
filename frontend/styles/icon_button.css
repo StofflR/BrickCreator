@@ -26,3 +26,10 @@
     display: block;
     pointer-events: none;
 }
+
+.icon-button .icon-text {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    color: inherit;
+}
