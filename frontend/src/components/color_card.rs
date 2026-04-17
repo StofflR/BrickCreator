@@ -30,6 +30,10 @@ pub fn color_card(props: &ColorCardProps) -> Html {
         "background:{};color:{};border:3px solid {};",
         props.color.shade, props.color.text, props.color.border
     );
+    let swatch_style = format!(
+        "--swatch-color:{};--swatch-shade:{};--swatch-border:{};",
+        props.color.color, props.color.shade, props.color.border
+    );
 
     html! {
         <Card
@@ -39,6 +43,7 @@ pub fn color_card(props: &ColorCardProps) -> Html {
             selected={props.selected}
             onclick={on_click}
         >
+            <div class="color-card-mobile-swatch" style={swatch_style} aria-hidden="true"></div>
             <div class="color-card-content">
                 <div class="color-card-sample" style={color_style}>{"abc"}</div>
                 <div class="color-card-sample" style={shade_style}>{"abc"}</div>

@@ -31,6 +31,7 @@ pub struct TutorialEditorProps {
     pub on_export_clear: Callback<MouseEvent>,
     pub on_export_json: Callback<MouseEvent>,
     pub on_export_png: Callback<MouseEvent>,
+    pub on_export_svg: Callback<MouseEvent>,
     pub on_exit_export: Callback<MouseEvent>,
 }
 
@@ -135,6 +136,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                         <button type="button" onclick={props.on_export_clear.clone()} disabled={props.total_bricks == 0}>{"Clear"}</button>
                         <button type="button" onclick={props.on_export_json.clone()} disabled={props.selected_count == 0}>{"Export JSON"}</button>
                         <button type="button" onclick={props.on_export_png.clone()} disabled={props.selected_count == 0}>{"Export PNG"}</button>
+                        <button type="button" onclick={props.on_export_svg.clone()} disabled={props.selected_count == 0}>{"Export SVG"}</button>
                         <button type="button" onclick={props.on_exit_export.clone()}>{"Done"}</button>
                     </div>
                 }

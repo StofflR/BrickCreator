@@ -38,7 +38,6 @@
     outline: none;
     box-sizing: border-box;
     resize: none;
-    field-sizing: content;
 }
 
 .brick-settings__content-input:focus {
@@ -51,33 +50,72 @@
     gap: 6px;
 }
 
-/* ── Bottom: colors + types in one row ────────────────────── */
+/* ── Selectors: colors + types ────────────────────────────── */
 
-.brick-settings__bottom {
+.brick-settings__selectors {
     display: flex;
-    flex-direction: row;
-    gap: var(--gap);
     flex: 1 1 0;
+    gap: var(--gap);
     min-height: 0;
+    overflow: hidden;
 }
 
-.brick-settings__bottom .editor-group__content {
+.brick-settings__panel {
+    display: flex;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.brick-settings__panel .editor-group__content {
     overflow-y: auto;
+}
+
+.brick-settings__panel--colors,
+.brick-settings__panel--types {
+    width: 100%;
 }
 
 @media (max-width: 900px) {
     .brick-settings-wrap {
         flex: 1 1 0;
+        overflow: hidden;
     }
-    .brick-settings__bottom {
+    .brick-settings-wrap > .editor-group:first-child > .editor-group__content {
+        align-items: flex-start;
+    }
+    .brick-settings__content-input {
+        min-height: 4lh;
+        max-height: 6lh;
+    }
+    .brick-settings__buttons {
+        flex: 0 0 auto;
+    }
+    .brick-settings__selectors {
         flex: 1 1 0;
+        flex-direction: column;
+        min-height: 0;
+        overflow: hidden;
     }
-    .brick-settings__bottom .editor-group {
+    .brick-settings__panel {
         flex: 1 1 0;
+        min-height: 0;
     }
-    .brick-settings__bottom .editor-group__content {
+    .brick-settings__panel--types .editor-group {
+        width: 100%;
+    }
+    .brick-settings__panel .editor-group {
+        flex: 1 1 0;
+        min-height: 0;
+    }
+    .brick-settings__panel--colors .editor-group {
+        width: 100%;
+    }
+    .brick-settings__panel .editor-group__content {
         flex: 1 1 0;
         min-height: 0;
         height: 100%;
+        overflow-y: auto;
     }
 }

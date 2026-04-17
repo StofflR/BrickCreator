@@ -10,7 +10,7 @@ const ICON_PREVIEW: &str = include_str!("../../res/preview.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_EDIT: &str = include_str!("../../res/edit.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_OUTPUT: &str = include_str!("../../res/output.svg");
+const ICON_BRICK_CATALOG: &str = include_str!("../../res/brickcatalog.svg");
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -58,7 +58,7 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
                 onclick={props.on_toggle_preview.clone()}
             />
             <IconButton
-                icon={Html::from_html_unchecked(AttrValue::from(ICON_OUTPUT))}
+                icon={Html::from_html_unchecked(AttrValue::from(ICON_BRICK_CATALOG))}
                 title="Open brick catalog"
                 onclick={props.on_open_catalog.clone()}
             />

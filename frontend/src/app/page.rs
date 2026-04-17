@@ -30,9 +30,17 @@ const ICON_UPLOAD: &str = include_str!("../res/upload.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_DOWNLOAD: &str = include_str!("../res/download.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_EXPORT_ALL_BRICKS: &str = "<span class='icon-text'>B</span>";
+const ICON_EXPORT_ALL_BRICKS: &str = include_str!("../res/zipfolder.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_EXPORT_NINEPATCH: &str = "<span class='icon-text'>9</span>";
+#[cfg(target_arch = "wasm32")]
+const ICON_MENU: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24px\" height=\"24px\" fill=\"currentColor\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"2\"/><rect x=\"4\" y=\"11\" width=\"16\" height=\"2\"/><rect x=\"4\" y=\"17\" width=\"16\" height=\"2\"/></svg>";
+#[cfg(target_arch = "wasm32")]
+const ICON_UNDO: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 14 4 9l5-5\"/><path d=\"M20 20a8 8 0 0 0-8-8H4\"/></svg>";
+#[cfg(target_arch = "wasm32")]
+const ICON_REDO: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 14 5-5-5-5\"/><path d=\"M4 20a8 8 0 0 1 8-8h8\"/></svg>";
+#[cfg(target_arch = "wasm32")]
+const ICON_HELP: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"currentColor\"><path d=\"M9 21h6v-1H9zm3-20a7 7 0 0 0-4 12.75V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3.25A7 7 0 0 0 12 1zm2.4 11.55-.4.3V15h-4v-1.5c0-1.2.58-2.32 1.55-3l.55-.4a1.97 1.97 0 0 0 .9-1.67A2.05 2.05 0 0 0 10.5 6.5 2.07 2.07 0 0 0 8.5 8H7a3.5 3.5 0 0 1 7 0c0 1.17-.57 2.28-1.6 2.98z\"/></svg>";
 
 #[cfg(target_arch = "wasm32")]
 const SUN_ICON: &str = include_str!("../res/sun.svg");
@@ -70,6 +78,57 @@ fn apply_theme(light: bool) {
 }
 
 #[cfg(target_arch = "wasm32")]
+fn parse_svg_viewbox_dimensions(svg: &str) -> Option<(u32, u32)> {
+    let marker = "viewBox=\"0 0 ";
+    let start = svg.find(marker)? + marker.len();
+    let end = svg[start..].find('"')?;
+    let mut parts = svg[start..start + end].split_whitespace();
+    let width = parts.next()?.parse::<f32>().ok()?;
+    let height = parts.next()?.parse::<f32>().ok()?;
+    Some((width.ceil() as u32, height.ceil() as u32))
+}
+
+#[cfg(target_arch = "wasm32")]
+fn position_svg_root(mut svg: String, y_offset: u32) -> String {
+    if let Some(open_end) = svg.find('>') {
+        svg.insert_str(open_end, &format!(" x=\"0\" y=\"{}\"", y_offset));
+    }
+    svg
+}
+
+#[cfg(target_arch = "wasm32")]
+fn export_tutorial_svg(states: &[BrickState]) -> Result<String, String> {
+    let mut content = String::new();
+    let mut y_offset = 0u32;
+    let mut max_width = 0u32;
+
+    for state in states {
+        let svg = state.clone().get_svg();
+        let (width, height) = parse_svg_viewbox_dimensions(&svg).unwrap_or((0, 0));
+        max_width = max_width.max(width);
+        let positioned = position_svg_root(svg, y_offset);
+        content.push_str(&positioned);
+        y_offset += height;
+    }
+
+    let width = max_width.max(1);
+    let height = y_offset.max(1);
+    Ok(format!(
+        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {width} {height}\" width=\"{width}\" height=\"{height}\">{content}</svg>",
+        width = width,
+        height = height,
+        content = content
+    ))
+}
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Clone, Default, PartialEq)]
+struct AppSnapshot {
+    brick: BrickState,
+    tutorial: TutorialViewState,
+}
+
+#[cfg(target_arch = "wasm32")]
 #[function_component(App)]
 fn app() -> Html {
     let brick = use_reducer(BrickState::default);
@@ -80,11 +139,44 @@ fn app() -> Html {
     let all_bricks_rendering = use_state(|| false);
     let ninepatch_url = use_state(|| Option::<String>::None);
     let ninepatch_rendering = use_state(|| false);
+    let menu_open = use_state(|| false);
+    let history = use_state(|| vec![AppSnapshot::default()]);
+    let history_index = use_state(|| 0usize);
+    let restoring_history = use_mut_ref(|| false);
     let light = use_state(|| {
         let saved = load_saved_theme();
         apply_theme(saved);
         saved
     });
+
+    {
+        let history = history.clone();
+        let history_index = history_index.clone();
+        let restoring_history = restoring_history.clone();
+        let snapshot = AppSnapshot {
+            brick: (*brick).clone(),
+            tutorial: (*tutorial).clone(),
+        };
+        use_effect_with(snapshot, move |snapshot| {
+            if *restoring_history.borrow() {
+                *restoring_history.borrow_mut() = false;
+            } else {
+                let current_index = *history_index;
+                let mut next = (*history).clone();
+                if !next
+                    .get(current_index)
+                    .map(|entry| entry == snapshot)
+                    .unwrap_or(false)
+                {
+                    next.truncate(current_index + 1);
+                    next.push(snapshot.clone());
+                    history.set(next);
+                    history_index.set(current_index + 1);
+                }
+            }
+            || ()
+        });
+    }
 
     let tutorial_len = (*tutorial).tutorial.content.len();
     let export_selection = use_state(|| vec![false; tutorial_len]);
@@ -209,6 +301,44 @@ fn app() -> Html {
                 }
                 Err(e) => {
                     web_sys::console::error_1(&format!("PNG render error: {e}").into());
+                    return;
+                }
+            }
+            export_mode.set(false);
+        })
+    };
+
+    let on_export_selected_svg = {
+        let tutorial = tutorial.clone();
+        let export_selection = export_selection.clone();
+        let export_mode = export_mode.clone();
+        Callback::from(move |_: MouseEvent| {
+            let bricks = (*tutorial).get_brick_state_list();
+            let selection = (*export_selection).clone();
+            let selected: Vec<BrickState> = bricks
+                .into_iter()
+                .enumerate()
+                .filter_map(|(index, brick)| {
+                    if selection.get(index).copied().unwrap_or(false) {
+                        Some(brick)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+            if selected.is_empty() {
+                web_sys::console::error_1(&"Export error: no bricks selected".into());
+                return;
+            }
+            match export_tutorial_svg(&selected) {
+                Ok(svg) => {
+                    if let Err(e) = utility::download_svg(&svg, "tutorial.svg") {
+                        web_sys::console::error_1(&format!("SVG error: {e}").into());
+                        return;
+                    }
+                }
+                Err(e) => {
+                    web_sys::console::error_1(&format!("SVG render error: {e}").into());
                     return;
                 }
             }
@@ -354,11 +484,126 @@ fn app() -> Html {
         })
     };
 
+    let on_menu = {
+        let menu_open = menu_open.clone();
+        Callback::from(move |_: MouseEvent| menu_open.set(!*menu_open))
+    };
+
+    let on_undo = {
+        let history = history.clone();
+        let history_index = history_index.clone();
+        let restoring_history = restoring_history.clone();
+        let brick_dispatcher = brick_dispatcher.clone();
+        let tutorial_dispatcher = tutorial_dispatcher.clone();
+        let menu_open = menu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            let current_index = *history_index;
+            if current_index == 0 {
+                return;
+            }
+            let target_index = current_index - 1;
+            if let Some(snapshot) = (*history).get(target_index).cloned() {
+                *restoring_history.borrow_mut() = true;
+                brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
+                tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
+                history_index.set(target_index);
+                menu_open.set(false);
+            }
+        })
+    };
+
+    let on_redo = {
+        let history = history.clone();
+        let history_index = history_index.clone();
+        let restoring_history = restoring_history.clone();
+        let brick_dispatcher = brick_dispatcher.clone();
+        let tutorial_dispatcher = tutorial_dispatcher.clone();
+        let menu_open = menu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            let current_index = *history_index;
+            let target_index = current_index + 1;
+            if let Some(snapshot) = (*history).get(target_index).cloned() {
+                *restoring_history.borrow_mut() = true;
+                brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
+                tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
+                history_index.set(target_index);
+                menu_open.set(false);
+            }
+        })
+    };
+
+    let on_help = {
+        let menu_open = menu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            if let Some(window) = web_sys::window() {
+                let _ = window.alert_with_message(
+                    "Tip: pick a color, choose a brick type, edit the content, and use the sidebar to manage the tutorial. Undo and redo are available from this menu.",
+                );
+            }
+            menu_open.set(false);
+        })
+    };
+
     let tutorial_bricks = (*tutorial).get_brick_state_list();
     let selected_count = (*export_selection).iter().filter(|selected| **selected).count();
+    let can_undo = *history_index > 0;
+    let can_redo = *history_index + 1 < (*history).len();
     html! {
         <div class="page">
             <div class="transfer-toolbar">
+            <div class="transfer-toolbar__left">
+                <div class="toolbar-menu">
+                    <IconButton
+                        icon={Html::from_html_unchecked(AttrValue::from(ICON_MENU))}
+                        title="Menu"
+                        label="Menu"
+                        onclick={on_menu.clone()}
+                    />
+                    if *menu_open {
+                        <div class="toolbar-menu__dropdown">
+                            <button
+                                class="toolbar-menu__item"
+                                type="button"
+                                onclick={on_undo.clone()}
+                                disabled={!can_undo}
+                            >
+                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                    {Html::from_html_unchecked(AttrValue::from(ICON_UNDO))}
+                                </span>
+                                <span>{"Undo"}</span>
+                            </button>
+                            <button
+                                class="toolbar-menu__item"
+                                type="button"
+                                onclick={on_redo.clone()}
+                                disabled={!can_redo}
+                            >
+                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                    {Html::from_html_unchecked(AttrValue::from(ICON_REDO))}
+                                </span>
+                                <span>{"Redo"}</span>
+                            </button>
+                            <button
+                                class="toolbar-menu__item"
+                                type="button"
+                                onclick={on_help.clone()}
+                            >
+                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                    {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
+                                </span>
+                                <span>{"Help"}</span>
+                            </button>
+                        </div>
+                    }
+                </div>
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(if *light { MOON_ICON } else { SUN_ICON }))}
+                    title={if *light { "Switch to dark mode" } else { "Switch to light mode" }}
+                    label="Theme"
+                    onclick={toggle_theme.clone()}
+                />
+            </div>
+            <div class="transfer-toolbar__right">
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
                     title="Import JSON"
@@ -383,13 +628,8 @@ fn app() -> Html {
                     label="9-patch ZIP"
                     onclick={export_ninepatch_zip.clone()}
                 />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(if *light { MOON_ICON } else { SUN_ICON }))}
-                    title={if *light { "Switch to dark mode" } else { "Switch to light mode" }}
-                    label="Theme"
-                    onclick={toggle_theme.clone()}
-                />
             </div>
+        </div>
             <div class="page__content">
                 <div class="page__main">
                     <BrickEditor
@@ -413,6 +653,7 @@ fn app() -> Html {
                         on_export_clear={on_export_clear.clone()}
                         on_export_json={on_export_selected_json.clone()}
                         on_export_png={on_export_selected_png.clone()}
+                        on_export_svg={on_export_selected_svg.clone()}
                         on_exit_export={on_exit_export_mode.clone()}
                     />
                 </Sidebar>

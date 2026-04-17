@@ -26,6 +26,7 @@ pub enum TutorialAction {
     Deselect,
     MoveEntry(usize, usize),
     LoadJson(String),
+    Restore(TutorialViewState),
 }
 
 pub fn tutorial_from_states(states: &[BrickState], name: &str) -> Tutorial {
@@ -108,6 +109,7 @@ impl Reducible for TutorialViewState {
                     }
                 }
             }
+            TutorialAction::Restore(state) => Rc::new(state),
         }
     }
 }

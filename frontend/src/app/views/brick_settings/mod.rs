@@ -8,8 +8,6 @@ mod types_group;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
-use crate::interfaces::utility;
-#[cfg(target_arch = "wasm32")]
 use colors_group::ColorsGroup;
 #[cfg(target_arch = "wasm32")]
 use content_group::ContentGroup;
@@ -64,34 +62,27 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
 
 
 
-    let on_save_svg = {
-        let brick = props.brick.clone();
-        Callback::from(move |_| {
-            let svg = brick.clone().get_svg();
-            if let Err(e) = utility::download_svg(&svg, "brick.svg") {
-                web_sys::console::error_1(&format!("SVG error: {e}").into());
-            }
-        })
-    };
-
     html! {
         <div class="brick-settings-wrap">
             <ContentGroup
                 content={content_val}
                 on_content_input={on_content_input}
                 on_add_to_tutorial={props.on_add_to_tutorial.clone()}
-                on_save_svg={on_save_svg}
             />
-            <div class="brick-settings__bottom">
-                <ColorsGroup
-                    selected_name={color_name}
-                    on_select={on_color_select}
-                />
-                <TypesGroup
-                    selected={brick_type}
-                    color_scheme={selected_color}
-                    on_select={on_brick_type_select}
-                />
+            <div class="brick-settings__selectors">
+                <div class="brick-settings__panel brick-settings__panel--colors">
+                    <ColorsGroup
+                        selected_name={color_name}
+                        on_select={on_color_select}
+                    />
+                </div>
+                <div class="brick-settings__panel brick-settings__panel--types">
+                    <TypesGroup
+                        selected={brick_type}
+                        color_scheme={selected_color}
+                        on_select={on_brick_type_select}
+                    />
+                </div>
             </div>
         </div>
     }

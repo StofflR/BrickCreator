@@ -8,15 +8,11 @@ use yew::prelude::*;
 #[cfg(target_arch = "wasm32")]
 const ICON_ADD: &str = include_str!("../../../res/add.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_IMAGE: &str = include_str!("../../../res/image.svg");
-#[cfg(target_arch = "wasm32")]
-#[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
 pub struct ContentGroupProps {
     pub content: String,
     pub on_content_input: Callback<InputEvent>,
     pub on_add_to_tutorial: Callback<MouseEvent>,
-    pub on_save_svg: Callback<MouseEvent>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -35,11 +31,6 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
                     title="Add to tutorial"
                     onclick={props.on_add_to_tutorial.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_IMAGE))}
-                    title="Save SVG"
-                    onclick={props.on_save_svg.clone()}
                 />
             </div>
         </EditorGroup>
