@@ -6,7 +6,7 @@ use crate::components::icon_button::IconButton;
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-const ICON_ADD: &str = include_str!("../../../res/add.svg");
+const ICON_ADD: &str = include_str!("../../../res/addBrick.svg");
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
 pub struct ContentGroupProps {
@@ -19,20 +19,22 @@ pub struct ContentGroupProps {
 #[function_component(ContentGroup)]
 pub fn content_group(props: &ContentGroupProps) -> Html {
     html! {
-        <EditorGroup title="Content">
+        <EditorGroup
+            title="Content"
+            header={html! {
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
+                    title="Add to tutorial"
+                    onclick={props.on_add_to_tutorial.clone()}
+                />
+            }}
+        >
             <textarea
                 class="brick-settings__content-input"
                 placeholder="Content…"
                 value={props.content.clone()}
                 oninput={props.on_content_input.clone()}
             />
-            <div class="brick-settings__buttons">
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
-                    title="Add to tutorial"
-                    onclick={props.on_add_to_tutorial.clone()}
-                />
-            </div>
         </EditorGroup>
     }
 }

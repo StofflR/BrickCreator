@@ -44,12 +44,6 @@
     border-color: var(--color-accent);
 }
 
-.brick-settings__buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 /* ── Selectors: colors + types ────────────────────────────── */
 
 .brick-settings__selectors {
@@ -88,9 +82,6 @@
     .brick-settings__content-input {
         min-height: 4lh;
         max-height: 6lh;
-    }
-    .brick-settings__buttons {
-        flex: 0 0 auto;
     }
     .brick-settings__selectors {
         flex: 1 1 0;

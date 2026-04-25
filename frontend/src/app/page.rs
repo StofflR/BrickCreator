@@ -18,6 +18,7 @@ use crate::interfaces::tutorial::{tutorial_from_states, tutorial_png_bytes, Tuto
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
 use shared::tutorial::Tutorial;
+use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 #[cfg(target_arch = "wasm32")]
@@ -34,11 +35,13 @@ const ICON_EXPORT_ALL_BRICKS: &str = include_str!("../res/zipfolder.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_EXPORT_NINEPATCH: &str = "<span class='icon-text'>9</span>";
 #[cfg(target_arch = "wasm32")]
+const ICON_LOADING: &str = "<svg class=\"icon-spinner\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24px\" height=\"24px\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3a9 9 0 1 0 9 9\"/></svg>";
+#[cfg(target_arch = "wasm32")]
 const ICON_MENU: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"24px\" height=\"24px\" fill=\"currentColor\"><rect x=\"4\" y=\"5\" width=\"16\" height=\"2\"/><rect x=\"4\" y=\"11\" width=\"16\" height=\"2\"/><rect x=\"4\" y=\"17\" width=\"16\" height=\"2\"/></svg>";
 #[cfg(target_arch = "wasm32")]
-const ICON_UNDO: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 14 4 9l5-5\"/><path d=\"M20 20a8 8 0 0 0-8-8H4\"/></svg>";
+const ICON_UNDO: &str = include_str!("../res/undo.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_REDO: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 14 5-5-5-5\"/><path d=\"M4 20a8 8 0 0 1 8-8h8\"/></svg>";
+const ICON_REDO: &str = include_str!("../res/redo.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_HELP: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"currentColor\"><path d=\"M9 21h6v-1H9zm3-20a7 7 0 0 0-4 12.75V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3.25A7 7 0 0 0 12 1zm2.4 11.55-.4.3V15h-4v-1.5c0-1.2.58-2.32 1.55-3l.55-.4a1.97 1.97 0 0 0 .9-1.67A2.05 2.05 0 0 0 10.5 6.5 2.07 2.07 0 0 0 8.5 8H7a3.5 3.5 0 0 1 7 0c0 1.17-.57 2.28-1.6 2.98z\"/></svg>";
 
@@ -50,6 +53,28 @@ const MOON_ICON: &str = include_str!("../res/moon.svg");
 #[cfg(target_arch = "wasm32")]
 fn get_document() -> web_sys::Document {
     gloo::utils::document()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn themed_menu_icon(svg: &str) -> AttrValue {
+    AttrValue::from(svg.replace("fill=\"#1f1f1f\"", "fill=\"currentColor\""))
+}
+
+#[cfg(target_arch = "wasm32")]
+fn trigger_download(url: &str, filename: &str) {
+    if let Some(window) = web_sys::window() {
+        if let Some(document) = window.document() {
+            if let Some(anchor) = document
+                .create_element("a")
+                .ok()
+                .and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok())
+            {
+                anchor.set_href(url);
+                anchor.set_download(filename);
+                let _ = anchor.click();
+            }
+        }
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -354,48 +379,51 @@ fn app() -> Html {
                 return;
             }
             if let Some(url) = (*all_bricks_url).clone() {
-                if let Some(window) = web_sys::window() {
-                    if let Some(document) = window.document() {
-                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
-                            anchor.set_href(&url);
-                            anchor.set_download("all_bricks.zip");
-                            let _ = anchor.click();
-                            return;
-                        }
-                    }
-                }
+                trigger_download(&url, "all_bricks.zip");
+                return;
             }
             all_bricks_rendering.set(true);
-            match catalog::render_all_bricks_zip_bytes(192) {
-                Ok(data) => {
-                    let uint8 = js_sys::Uint8Array::from(&data[..]);
-                    let parts = js_sys::Array::new();
-                    parts.push(&uint8.buffer());
-                    let mut opts = BlobPropertyBag::new();
-                    #[allow(deprecated)]
-                    opts.type_("application/zip");
-                    match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
-                        Ok(blob) => match Url::create_object_url_with_blob(&blob) {
-                            Ok(url) => {
-                                all_bricks_url.set(Some(url.clone()));
-                                if let Some(window) = web_sys::window() {
-                                    if let Some(document) = window.document() {
-                                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
-                                            anchor.set_href(&url);
-                                            anchor.set_download("all_bricks.zip");
-                                            let _ = anchor.click();
-                                        }
-                                    }
+            let all_bricks_url = all_bricks_url.clone();
+            let all_bricks_rendering_done = all_bricks_rendering.clone();
+            let callback = Closure::once(move || {
+                match catalog::render_all_bricks_zip_bytes(192) {
+                    Ok(data) => {
+                        let uint8 = js_sys::Uint8Array::from(&data[..]);
+                        let parts = js_sys::Array::new();
+                        parts.push(&uint8.buffer());
+                        let mut opts = BlobPropertyBag::new();
+                        #[allow(deprecated)]
+                        opts.type_("application/zip");
+                        match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
+                            Ok(blob) => match Url::create_object_url_with_blob(&blob) {
+                                Ok(url) => {
+                                    all_bricks_url.set(Some(url.clone()));
+                                    trigger_download(&url, "all_bricks.zip");
                                 }
-                            }
-                            Err(e) => web_sys::console::error_1(&format!("All bricks URL error: {e:?}").into()),
-                        },
-                        Err(e) => web_sys::console::error_1(&format!("All bricks blob error: {e:?}").into()),
+                                Err(e) => web_sys::console::error_1(
+                                    &format!("All bricks URL error: {e:?}").into(),
+                                ),
+                            },
+                            Err(e) => web_sys::console::error_1(
+                                &format!("All bricks blob error: {e:?}").into(),
+                            ),
+                        }
+                    }
+                    Err(e) => {
+                        web_sys::console::error_1(&format!("All bricks render error: {e}").into())
                     }
                 }
-                Err(e) => web_sys::console::error_1(&format!("All bricks render error: {e}").into()),
+                all_bricks_rendering_done.set(false);
+            });
+            if let Some(window) = web_sys::window() {
+                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                    callback.as_ref().unchecked_ref(),
+                    0,
+                );
+                callback.forget();
+            } else {
+                all_bricks_rendering.set(false);
             }
-            all_bricks_rendering.set(false);
         })
     };
 
@@ -407,48 +435,51 @@ fn app() -> Html {
                 return;
             }
             if let Some(url) = (*ninepatch_url).clone() {
-                if let Some(window) = web_sys::window() {
-                    if let Some(document) = window.document() {
-                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
-                            anchor.set_href(&url);
-                            anchor.set_download("ninepatch_bricks.zip");
-                            let _ = anchor.click();
-                            return;
-                        }
-                    }
-                }
+                trigger_download(&url, "ninepatch_bricks.zip");
+                return;
             }
             ninepatch_rendering.set(true);
-            match ninepatch::render_ninepatch_zip_bytes() {
-                Ok(data) => {
-                    let uint8 = js_sys::Uint8Array::from(&data[..]);
-                    let parts = js_sys::Array::new();
-                    parts.push(&uint8.buffer());
-                    let mut opts = BlobPropertyBag::new();
-                    #[allow(deprecated)]
-                    opts.type_("application/zip");
-                    match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
-                        Ok(blob) => match Url::create_object_url_with_blob(&blob) {
-                            Ok(url) => {
-                                ninepatch_url.set(Some(url.clone()));
-                                if let Some(window) = web_sys::window() {
-                                    if let Some(document) = window.document() {
-                                        if let Some(anchor) = document.create_element("a").ok().and_then(|e| e.dyn_into::<HtmlAnchorElement>().ok()) {
-                                            anchor.set_href(&url);
-                                            anchor.set_download("ninepatch_bricks.zip");
-                                            let _ = anchor.click();
-                                        }
-                                    }
+            let ninepatch_url = ninepatch_url.clone();
+            let ninepatch_rendering_done = ninepatch_rendering.clone();
+            let callback = Closure::once(move || {
+                match ninepatch::render_ninepatch_zip_bytes() {
+                    Ok(data) => {
+                        let uint8 = js_sys::Uint8Array::from(&data[..]);
+                        let parts = js_sys::Array::new();
+                        parts.push(&uint8.buffer());
+                        let mut opts = BlobPropertyBag::new();
+                        #[allow(deprecated)]
+                        opts.type_("application/zip");
+                        match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
+                            Ok(blob) => match Url::create_object_url_with_blob(&blob) {
+                                Ok(url) => {
+                                    ninepatch_url.set(Some(url.clone()));
+                                    trigger_download(&url, "ninepatch_bricks.zip");
                                 }
-                            }
-                            Err(e) => web_sys::console::error_1(&format!("Ninepatch URL error: {e:?}").into()),
-                        },
-                        Err(e) => web_sys::console::error_1(&format!("Ninepatch blob error: {e:?}").into()),
+                                Err(e) => web_sys::console::error_1(
+                                    &format!("Ninepatch URL error: {e:?}").into(),
+                                ),
+                            },
+                            Err(e) => web_sys::console::error_1(
+                                &format!("Ninepatch blob error: {e:?}").into(),
+                            ),
+                        }
+                    }
+                    Err(e) => {
+                        web_sys::console::error_1(&format!("Ninepatch render error: {e}").into())
                     }
                 }
-                Err(e) => web_sys::console::error_1(&format!("Ninepatch render error: {e}").into()),
+                ninepatch_rendering_done.set(false);
+            });
+            if let Some(window) = web_sys::window() {
+                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                    callback.as_ref().unchecked_ref(),
+                    0,
+                );
+                callback.forget();
+            } else {
+                ninepatch_rendering.set(false);
             }
-            ninepatch_rendering.set(false);
         })
     };
 
@@ -568,7 +599,7 @@ fn app() -> Html {
                                 disabled={!can_undo}
                             >
                                 <span class="toolbar-menu__icon" aria-hidden="true">
-                                    {Html::from_html_unchecked(AttrValue::from(ICON_UNDO))}
+                                    {Html::from_html_unchecked(themed_menu_icon(ICON_UNDO))}
                                 </span>
                                 <span>{"Undo"}</span>
                             </button>
@@ -579,7 +610,7 @@ fn app() -> Html {
                                 disabled={!can_redo}
                             >
                                 <span class="toolbar-menu__icon" aria-hidden="true">
-                                    {Html::from_html_unchecked(AttrValue::from(ICON_REDO))}
+                                    {Html::from_html_unchecked(themed_menu_icon(ICON_REDO))}
                                 </span>
                                 <span>{"Redo"}</span>
                             </button>
@@ -617,16 +648,18 @@ fn app() -> Html {
                     onclick={on_enter_export_mode.clone()}
                 />
                 <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_EXPORT_ALL_BRICKS))}
-                    title="Render All Bricks ZIP"
+                    icon={Html::from_html_unchecked(AttrValue::from(if *all_bricks_rendering { ICON_LOADING } else { ICON_EXPORT_ALL_BRICKS }))}
+                    title={if *all_bricks_rendering { "Rendering All Bricks ZIP..." } else { "Render All Bricks ZIP" }}
                     label="All ZIP"
                     onclick={export_all_bricks_zip.clone()}
+                    disabled={*all_bricks_rendering}
                 />
                 <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_EXPORT_NINEPATCH))}
-                    title="Render 9-patch ZIP"
+                    icon={Html::from_html_unchecked(AttrValue::from(if *ninepatch_rendering { ICON_LOADING } else { ICON_EXPORT_NINEPATCH }))}
+                    title={if *ninepatch_rendering { "Rendering 9-patch ZIP..." } else { "Render 9-patch ZIP" }}
                     label="9-patch ZIP"
                     onclick={export_ninepatch_zip.clone()}
+                    disabled={*ninepatch_rendering}
                 />
             </div>
         </div>
