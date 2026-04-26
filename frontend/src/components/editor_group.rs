@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -22,28 +24,11 @@ pub struct EditorGroupProps {
 pub fn editor_group(props: &EditorGroupProps) -> Html {
     html! {
         <div class={classes!(
-            "flex",
-            "min-h-0",
-            "flex-1",
-            "flex-col",
-            "overflow-hidden",
-            "rounded-[var(--app-radius)]",
-            "border",
-            "border-app-border",
-            "bg-app-surface",
+            style::EDITOR_GROUP_ROOT,
             props.class.clone(),
         )}>
             <div class={classes!(
-                "flex",
-                "shrink-0",
-                "items-center",
-                "justify-between",
-                "gap-2",
-                "border-b",
-                "border-app-border",
-                "bg-app-surface-raised",
-                "px-3",
-                "py-2",
+                style::EDITOR_GROUP_HEADER,
                 props.header_class.clone(),
             )}>
                 <span class="text-[12px] font-semibold tracking-[0.06em] text-app-text-muted uppercase">{props.title.clone()}</span>
@@ -52,12 +37,7 @@ pub fn editor_group(props: &EditorGroupProps) -> Html {
                 </div>
             </div>
             <div class={classes!(
-                "flex",
-                "min-h-0",
-                "flex-1",
-                "flex-col",
-                "overflow-hidden",
-                "p-app-gap",
+                style::EDITOR_GROUP_CONTENT,
                 props.content_class.clone(),
             )}>
                 { for props.children.iter() }
