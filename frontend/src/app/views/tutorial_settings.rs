@@ -10,7 +10,14 @@ const ICON_PREVIEW: &str = include_str!("../../res/preview.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_EDIT: &str = include_str!("../../res/edit.svg");
 #[cfg(target_arch = "wasm32")]
+const ICON_EDIT_SQUARE: &str = include_str!("../../res/editsquare.svg");
+#[cfg(target_arch = "wasm32")]
 const ICON_BRICK_CATALOG: &str = include_str!("../../res/brickcatalog.svg");
+
+#[cfg(target_arch = "wasm32")]
+fn themed_icon(svg: &str) -> AttrValue {
+    AttrValue::from(svg.replace("fill=\"#1f1f1f\"", "fill=\"currentColor\""))
+}
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
@@ -27,7 +34,7 @@ pub struct TutorialSettingsViewProps {
 #[function_component(TutorialSettingsView)]
 pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
     let preview_icon = if props.show_preview {
-        Html::from_html_unchecked(AttrValue::from(ICON_EDIT))
+        Html::from_html_unchecked(themed_icon(ICON_EDIT_SQUARE))
     } else {
         Html::from_html_unchecked(AttrValue::from(ICON_PREVIEW))
     };
