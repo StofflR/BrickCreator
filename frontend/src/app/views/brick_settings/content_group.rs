@@ -3,7 +3,7 @@ use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
-use shared::brick::base::{DROP_MARKER, VARIABLE_MARKER};
+use shared::brick::base::{DROP_MARKER, EMPTY_BRICK_HINT, VARIABLE_MARKER};
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
@@ -22,15 +22,30 @@ pub struct ContentGroupProps {
 pub fn content_group(props: &ContentGroupProps) -> Html {
     let textarea_ref = use_node_ref();
     let selection = use_state(|| (0_u32, 0_u32));
+    let context_menu = use_state(|| Option::<(i32, i32)>::None);
+
+    let close_context_menu = {
+        let context_menu = context_menu.clone();
+        Callback::from(move |_: ()| context_menu.set(None))
+    };
+
+    let close_context_menu_click = {
+        let context_menu = context_menu.clone();
+        Callback::from(move |_e: MouseEvent| context_menu.set(None))
+    };
 
     let sync_selection = {
         let textarea_ref = textarea_ref.clone();
         let selection = selection.clone();
+        let context_menu = context_menu.clone();
         Callback::from(move |_| {
             if let Some(input) = textarea_ref.cast::<web_sys::HtmlTextAreaElement>() {
                 let start = input.selection_start().ok().flatten().unwrap_or(0);
                 let end = input.selection_end().ok().flatten().unwrap_or(start);
                 selection.set((start, end));
+                if start >= end {
+                    context_menu.set(None);
+                }
             }
         })
     };
@@ -67,9 +82,29 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
         })
     };
 
+    let on_context_menu = {
+        let textarea_ref = textarea_ref.clone();
+        let selection = selection.clone();
+        let context_menu = context_menu.clone();
+        Callback::from(move |e: MouseEvent| {
+            if let Some(input) = textarea_ref.cast::<web_sys::HtmlTextAreaElement>() {
+                let start = input.selection_start().ok().flatten().unwrap_or(0);
+                let end = input.selection_end().ok().flatten().unwrap_or(start);
+                selection.set((start, end));
+                if start < end {
+                    e.prevent_default();
+                    context_menu.set(Some((e.client_x(), e.client_y())));
+                } else {
+                    context_menu.set(None);
+                }
+            }
+        })
+    };
+
     let wrap_selection = {
         let textarea_ref = textarea_ref.clone();
         let selection = selection.clone();
+        let context_menu = context_menu.clone();
         let on_content_input = props.on_content_input.clone();
         let content = props.content.clone();
         move |marker: &'static str| {
@@ -102,9 +137,14 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
             }
 
             selection.set((caret_start, caret_end));
+            context_menu.set(None);
             on_content_input.emit(updated);
         }
     };
+
+    let keep_focus_on_menu = Callback::from(move |e: MouseEvent| {
+        e.prevent_default();
+    });
 
     let on_variable = {
         let wrap_selection = wrap_selection.clone();
@@ -133,20 +173,6 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
             header={html! {
                 <>
                     <IconButton
-                        icon={html! { <span class="icon-text">{"*"}</span> }}
-                        title="Variable"
-                        label="Variable"
-                        onclick={on_variable}
-                        disabled={!has_selection}
-                    />
-                    <IconButton
-                        icon={html! { <span class="icon-text">{"_"}</span> }}
-                        title="Dropdown"
-                        label="Dropdown"
-                        onclick={on_dropdown}
-                        disabled={!has_selection}
-                    />
-                    <IconButton
                         icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
                         title="Add to tutorial"
                         onclick={props.on_add_to_tutorial.clone()}
@@ -154,16 +180,44 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
                 </>
             }}
         >
-            <textarea
-                class="brick-settings__content-input"
-                placeholder="Content…"
-                ref={textarea_ref}
-                value={props.content.clone()}
-                oninput={on_input}
-                onselect={on_select}
-                onkeyup={on_keyup}
-                onmouseup={on_mouseup}
-            />
+            <div class="brick-settings__content-shell">
+                <textarea
+                    class="brick-settings__content-input"
+                    placeholder={EMPTY_BRICK_HINT}
+                    ref={textarea_ref}
+                    value={props.content.clone()}
+                    oninput={on_input}
+                    onselect={on_select}
+                    onkeyup={on_keyup}
+                    onmouseup={on_mouseup}
+                    oncontextmenu={on_context_menu}
+                    onclick={close_context_menu_click}
+                />
+                if let Some((x, y)) = *context_menu {
+                    <div
+                        class="brick-settings__context-menu"
+                        style={format!("left:{}px; top:{}px;", x, y)}
+                        onmousedown={keep_focus_on_menu.clone()}
+                    >
+                        <button
+                            class="brick-settings__context-item"
+                            type="button"
+                            onmousedown={on_variable}
+                            disabled={!has_selection}
+                        >
+                            {"Make variable"}
+                        </button>
+                        <button
+                            class="brick-settings__context-item"
+                            type="button"
+                            onmousedown={on_dropdown}
+                            disabled={!has_selection}
+                        >
+                            {"Make dropdown"}
+                        </button>
+                    </div>
+                }
+            </div>
         </EditorGroup>
     }
 }

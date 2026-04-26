@@ -6,7 +6,7 @@ pub const VARIABLE_MARKER: &str = "*";
 pub const DROP_MARKER: &str = "_";
 const DROP_SCALE: f32 = 0.8;
 pub const DEFAULT_X_OFFSET: f32 = 0.11;
-pub const EMPTY_BRICK_HINT: &str = "Use * for variables and _ for dropdowns";
+pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
 
 // escaping: ensure that the symbol in the brick is read as text
 fn escape_xml_text(text: &str) -> String {

@@ -65,13 +65,12 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
     fn get_type(&self) -> types::BrickType;
     fn get_dimensions(&self) -> (u32, u32);
     fn parse_content(&self) -> String {
+        if self.content.trim().is_empty() {
+            return String::new();
+        }
+
         let offset = &self.offset;
-        let is_empty = self.content.trim().is_empty();
-        let content = if is_empty {
-            EMPTY_BRICK_HINT
-        } else {
-            self.content.as_str()
-        };
+        let content = self.content.as_str();
         let scale = self.scale;
         let cap_height = get_cap_height(&scale);
 
@@ -86,11 +85,7 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
             .collect();
 
         let svg_lines = lines.iter().enumerate().map(|(index, line)| {
-            let line_content = if is_empty {
-                render_empty_hint(line, &self.color_scheme, &scale, available_width)
-            } else {
-                parse_line(line, self)
-            };
+            let line_content = parse_line(line, self);
             format!(
                 "<g transform=\"translate({} {})\">{}</g>",
                 offset_x,
