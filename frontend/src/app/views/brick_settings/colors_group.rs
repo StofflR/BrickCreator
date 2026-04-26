@@ -18,7 +18,7 @@ pub struct ColorsGroupProps {
 #[function_component(ColorsGroup)]
 pub fn colors_group(props: &ColorsGroupProps) -> Html {
     html! {
-        <EditorGroup title="Colors">
+        <EditorGroup title="Colors" class="w-full" content_class="min-h-0 flex-1 overflow-y-auto">
             <ColorView
                 selected_name={props.selected_name.clone()}
                 on_select={props.on_select.clone()}

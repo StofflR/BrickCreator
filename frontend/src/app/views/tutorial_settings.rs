@@ -39,7 +39,7 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
     };
 
     html! {
-        <div class="tutorial-view__toolbar">
+        <div class="flex flex-row flex-wrap gap-1.5">
             <IconButton
                 icon={Html::from_html_unchecked(AttrValue::from(ICON_DELETE))}
                 title="Remove brick"

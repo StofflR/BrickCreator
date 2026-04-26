@@ -59,12 +59,16 @@ pub fn brick_catalog_modal(props: &BrickCatalogModalProps) -> Html {
             hint="Double-click to add"
             on_close={props.on_close.clone()}
         >
-            <div class="brick-catalog">
+            <div class="flex flex-col gap-app-gap">
                 { for groups.into_iter().map(|(group, entries)| {
                     html! {
-                        <div class="brick-catalog__group" key={group.clone()}>
-                            <EditorGroup title={group.clone()}>
-                                <div class="brick-catalog__grid">
+                        <div class="flex-none" key={group.clone()}>
+                            <EditorGroup
+                                title={group.clone()}
+                                class="flex-none"
+                                content_class="flex-none overflow-visible"
+                            >
+                                <div class="flex flex-wrap gap-2.5">
                                     { for entries.into_iter().map(|(path, brick)| {
                                         let on_add_brick = props.on_add_brick.clone();
                                         let on_dblclick = if let Some(brick) = brick.clone() {
@@ -77,14 +81,15 @@ pub fn brick_catalog_modal(props: &BrickCatalogModalProps) -> Html {
                                             <Card
                                                 key={path}
                                                 title={label_from_path(path)}
+                                                class="h-[92px] w-[120px]"
                                                 selectable={true}
                                                 ondblclick={on_dblclick}
                                             >
-                                                <div class="brick-catalog__thumb" title={path}>
+                                                <div class="flex h-10 items-center justify-center overflow-hidden rounded-[4px] border border-app-border bg-app-surface" title={path}>
                                                     if let Some(brick) = brick {
-                                                        <BrickView brick={brick} />
+                                                        <BrickView brick={brick} class="block h-full w-full object-contain" />
                                                     } else {
-                                                        <div class="card-label">{ "Invalid brick" }</div>
+                                                        <div class="text-[11px] text-app-text-muted">{ "Invalid brick" }</div>
                                                     }
                                                 </div>
                                             </Card>

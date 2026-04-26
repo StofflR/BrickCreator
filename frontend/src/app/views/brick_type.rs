@@ -23,7 +23,7 @@ pub fn brick_type_view(props: &BrickTypeViewProps) -> Html {
     let model = StaticBrickTypeModel;
 
     html! {
-        <div class="brick-type-view">
+        <div class="flex flex-wrap gap-1.5 max-[900px]:grid max-[900px]:h-auto max-[900px]:grid-cols-2 max-[900px]:auto-rows-[minmax(64px,_auto)] max-[900px]:content-stretch max-[900px]:overflow-visible">
             { for model.all_types().iter().map(|entry| {
                 html! {
                     <BrickTypeCard

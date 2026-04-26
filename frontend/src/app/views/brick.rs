@@ -7,6 +7,8 @@ use yew::prelude::*;
 #[derive(Properties, PartialEq)]
 pub struct BrickViewProps {
     pub brick: BrickState,
+    #[prop_or_default]
+    pub class: Classes,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -18,6 +20,6 @@ pub fn brick_view(props: &BrickViewProps) -> Html {
         js_sys::encode_uri_component(&svg)
     );
     html! {
-        <img class="brick-view" src={data_uri} />
+        <img class={classes!("block", props.class.clone())} src={data_uri} />
     }
 }

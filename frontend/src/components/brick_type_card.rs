@@ -41,8 +41,11 @@ pub fn brick_type_card(props: &BrickTypeCardProps) -> Html {
             selected={props.selected}
             onclick={on_click}
         >
-            <div class="brick-type-card-preview" aria-hidden="true">
-                <BrickView brick={preview_brick} />
+            <div class="h-[22px] overflow-hidden max-[900px]:h-[18px]" aria-hidden="true">
+                <BrickView
+                    brick={preview_brick}
+                    class="block h-full w-full object-contain object-left"
+                />
             </div>
         </Card>
     }

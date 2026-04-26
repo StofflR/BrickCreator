@@ -34,6 +34,19 @@ pub fn sidebar(props: &SidebarProps) -> Html {
         let touch_start = touch_start.clone();
         use_effect(move || {
             let window = gloo::utils::window();
+            let resize_window = window.clone();
+            let resize_open = open.clone();
+            let resize_listener = EventListener::new(&window, "resize", move |_| {
+                let width = resize_window
+                    .inner_width()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if width > 900.0 && !*resize_open {
+                    resize_open.set(true);
+                }
+            });
+
             let start_window = window.clone();
             let _start_open = open.clone();
             let start_touch = touch_start.clone();
@@ -92,6 +105,7 @@ pub fn sidebar(props: &SidebarProps) -> Html {
             });
 
             move || {
+                drop(resize_listener);
                 drop(start_listener);
                 drop(end_listener);
             }
@@ -109,17 +123,40 @@ pub fn sidebar(props: &SidebarProps) -> Html {
         Html::from_html_unchecked(AttrValue::from(CHEVRON_LEFT))
     };
 
-    let sidebar_class = classes!("page__sidebar", (*open).then_some("page__sidebar--open"),);
+    let sidebar_class = classes!(
+        "flex",
+        "basis-[var(--app-toggle-width)]",
+        "shrink-0",
+        "flex-row",
+        "overflow-hidden",
+        "border-l",
+        "border-app-border",
+        "bg-app-surface",
+        "transition-[flex-basis,width]",
+        "duration-200",
+        "ease-in-out",
+        "max-[900px]:fixed",
+        "max-[900px]:right-0",
+        "max-[900px]:top-0",
+        "max-[900px]:bottom-0",
+        "max-[900px]:z-20",
+        "max-[900px]:h-dvh",
+        "max-[900px]:w-[var(--app-toggle-width)]",
+        "max-[900px]:shadow-[-8px_0_16px_rgba(0,0,0,0.25)]",
+        (*open).then_some("basis-[calc(var(--app-sidebar-width)+var(--app-toggle-width))]"),
+        (*open).then_some("max-[900px]:w-screen"),
+        (*open).then_some("max-[900px]:basis-[100vw]"),
+    );
 
     html! {
         <div class={sidebar_class}>
-            <div class="sidebar-strip">
-                <button class="sidebar-toggle" onclick={toggle} type="button">
+            <div class="flex h-full basis-[var(--app-toggle-width)] flex-col border-r border-app-border max-[900px]:absolute max-[900px]:left-0 max-[900px]:top-0 max-[900px]:bottom-0 max-[900px]:z-[2] max-[900px]:bg-app-surface">
+                <button class="flex flex-1 items-center justify-center bg-transparent px-0 py-2 text-app-text transition-colors hover:bg-app-surface-raised" onclick={toggle} type="button">
                     { chevron_icon }
                 </button>
             </div>
             if *open {
-                <div class="sidebar-content">
+                <div class="flex min-w-0 w-[var(--app-sidebar-width)] flex-1 flex-col overflow-auto p-app-gap max-[900px]:w-screen max-[900px]:pl-[calc(var(--app-gap)+var(--app-toggle-width))]">
                     { props.children.clone() }
                 </div>
             }

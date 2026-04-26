@@ -31,22 +31,29 @@ pub fn color_card(props: &ColorCardProps) -> Html {
         props.color.shade, props.color.text, props.color.border
     );
     let swatch_style = format!(
-        "--swatch-color:{};--swatch-shade:{};--swatch-border:{};",
-        props.color.color, props.color.shade, props.color.border
+        "background:linear-gradient(135deg, {} 0 50%, {} 50% 100%);",
+        props.color.color, props.color.shade
     );
 
     html! {
         <Card
             title={props.color.name.clone()}
-            class="card--color"
+            class="max-[900px]:border-2"
+            content_class="mt-auto"
             selectable={true}
             selected={props.selected}
+            mobile_circle={true}
+            hide_title_on_mobile={true}
             onclick={on_click}
         >
-            <div class="color-card-mobile-swatch" style={swatch_style} aria-hidden="true"></div>
-            <div class="color-card-content">
-                <div class="color-card-sample" style={color_style}>{"abc"}</div>
-                <div class="color-card-sample" style={shade_style}>{"abc"}</div>
+            <div
+                class="hidden h-5 w-5 rounded-full max-[900px]:block"
+                style={swatch_style}
+                aria-hidden="true"
+            ></div>
+            <div class="flex w-full items-stretch gap-1 max-[900px]:hidden">
+                <div class="flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[3px] px-1 py-px text-center text-[10px] leading-none max-[900px]:px-[3px] max-[900px]:py-px max-[900px]:text-[10px]" style={color_style}>{"abc"}</div>
+                <div class="flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[3px] px-1 py-px text-center text-[10px] leading-none max-[900px]:px-[3px] max-[900px]:py-px max-[900px]:text-[10px]" style={shade_style}>{"abc"}</div>
             </div>
         </Card>
     }
