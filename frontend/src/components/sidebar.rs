@@ -19,14 +19,7 @@ pub struct SidebarProps {
 #[cfg(target_arch = "wasm32")]
 #[function_component(Sidebar)]
 pub fn sidebar(props: &SidebarProps) -> Html {
-    let open = use_state(|| {
-        gloo::utils::window()
-            .inner_width()
-            .ok()
-            .and_then(|v| v.as_f64())
-            .map(|w| w > 900.0)
-            .unwrap_or(false)
-    });
+    let open = use_state(|| true);
     let touch_start = use_mut_ref(|| None::<(f64, f64)>);
 
     {
@@ -125,14 +118,15 @@ pub fn sidebar(props: &SidebarProps) -> Html {
 
     let sidebar_class = classes!(
         "flex",
-        "basis-[var(--app-toggle-width)]",
+        "min-w-0",
+        "w-[var(--app-toggle-width)]",
         "shrink-0",
         "flex-row",
         "overflow-hidden",
         "border-l",
         "border-app-border",
         "bg-app-surface",
-        "transition-[flex-basis,width]",
+        "transition-[width]",
         "duration-200",
         "ease-in-out",
         "max-[900px]:fixed",
@@ -143,9 +137,8 @@ pub fn sidebar(props: &SidebarProps) -> Html {
         "max-[900px]:h-dvh",
         "max-[900px]:w-[var(--app-toggle-width)]",
         "max-[900px]:shadow-[-8px_0_16px_rgba(0,0,0,0.25)]",
-        (*open).then_some("basis-[calc(var(--app-sidebar-width)+var(--app-toggle-width))]"),
+        (*open).then_some("w-[calc(var(--app-sidebar-width)+var(--app-toggle-width))]"),
         (*open).then_some("max-[900px]:w-screen"),
-        (*open).then_some("max-[900px]:basis-[100vw]"),
     );
 
     html! {
@@ -156,7 +149,10 @@ pub fn sidebar(props: &SidebarProps) -> Html {
                 </button>
             </div>
             if *open {
-                <div class="flex min-w-0 w-[var(--app-sidebar-width)] flex-1 flex-col overflow-auto p-app-gap max-[900px]:w-screen max-[900px]:pl-[calc(var(--app-gap)+var(--app-toggle-width))]">
+                <div
+                    class="flex min-w-0 flex-1 flex-col overflow-auto w-[var(--app-sidebar-width)] p-app-gap max-[900px]:w-screen max-[900px]:pl-[calc(var(--app-gap)+var(--app-toggle-width))]"
+                    aria-hidden="false"
+                >
                     { props.children.clone() }
                 </div>
             }
