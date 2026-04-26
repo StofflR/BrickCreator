@@ -167,7 +167,7 @@ fn app() -> Html {
     let menu_open = use_state(|| false);
     let history = use_state(|| vec![AppSnapshot::default()]);
     let history_index = use_state(|| 0usize);
-    let restoring_history = use_mut_ref(|| false);
+    let restoring_history = use_mut_ref(|| 0usize);
     let light = use_state(|| {
         let saved = load_saved_theme();
         apply_theme(saved);
@@ -183,8 +183,9 @@ fn app() -> Html {
             tutorial: (*tutorial).clone(),
         };
         use_effect_with(snapshot, move |snapshot| {
-            if *restoring_history.borrow() {
-                *restoring_history.borrow_mut() = false;
+            let pending_restores = *restoring_history.borrow();
+            if pending_restores > 0 {
+                *restoring_history.borrow_mut() = pending_restores - 1;
             } else {
                 let current_index = *history_index;
                 let mut next = (*history).clone();
@@ -520,13 +521,19 @@ fn app() -> Html {
         Callback::from(move |_: MouseEvent| menu_open.set(!*menu_open))
     };
 
+    let on_menu_mouse_leave = {
+        let menu_open = menu_open.clone();
+        Callback::from(move |_: MouseEvent| menu_open.set(false))
+    };
+
     let on_undo = {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
+        let brick = brick.clone();
+        let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
         let tutorial_dispatcher = tutorial_dispatcher.clone();
-        let menu_open = menu_open.clone();
         Callback::from(move |_: MouseEvent| {
             let current_index = *history_index;
             if current_index == 0 {
@@ -534,11 +541,12 @@ fn app() -> Html {
             }
             let target_index = current_index - 1;
             if let Some(snapshot) = (*history).get(target_index).cloned() {
-                *restoring_history.borrow_mut() = true;
+                let pending_restores = usize::from(*brick != snapshot.brick)
+                    + usize::from(*tutorial != snapshot.tutorial);
+                *restoring_history.borrow_mut() = pending_restores;
                 brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
-                menu_open.set(false);
             }
         })
     };
@@ -547,18 +555,20 @@ fn app() -> Html {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
+        let brick = brick.clone();
+        let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
         let tutorial_dispatcher = tutorial_dispatcher.clone();
-        let menu_open = menu_open.clone();
         Callback::from(move |_: MouseEvent| {
             let current_index = *history_index;
             let target_index = current_index + 1;
             if let Some(snapshot) = (*history).get(target_index).cloned() {
-                *restoring_history.borrow_mut() = true;
+                let pending_restores = usize::from(*brick != snapshot.brick)
+                    + usize::from(*tutorial != snapshot.tutorial);
+                *restoring_history.borrow_mut() = pending_restores;
                 brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
-                menu_open.set(false);
             }
         })
     };
@@ -591,7 +601,7 @@ fn app() -> Html {
                         onclick={on_menu.clone()}
                     />
                     if *menu_open {
-                        <div class="toolbar-menu__dropdown">
+                        <div class="toolbar-menu__dropdown" onmouseleave={on_menu_mouse_leave}>
                             <button
                                 class="toolbar-menu__item"
                                 type="button"
