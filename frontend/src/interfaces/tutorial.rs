@@ -19,12 +19,27 @@ pub struct TutorialViewState {
 }
 pub enum TutorialAction {
     AddBrick(BrickState),
+    InsertAfterSelected(Vec<BrickState>),
     RemoveSelected,
     ApplyChanges(BrickState),
     Select(usize),
     Deselect,
     MoveEntry(usize, usize),
     LoadJson(String),
+    Restore(TutorialViewState),
+}
+
+pub fn tutorial_from_states(states: &[BrickState], name: &str) -> Tutorial {
+    Tutorial {
+        name: name.to_string(),
+        content: states.iter().map(box_from_state).collect(),
+    }
+}
+
+pub fn tutorial_png_bytes(states: &[BrickState], target_width: u32) -> Result<Vec<u8>, String> {
+    let tutorial = tutorial_from_states(states, "Exported tutorial");
+    let pixmap = tutorial.to_pixmap(target_width)?;
+    pixmap.encode_png().map_err(|e| e.to_string())
 }
 
 impl Reducible for TutorialViewState {
@@ -37,6 +52,11 @@ impl Reducible for TutorialViewState {
                 new_state.add_brick(&brick);
                 let len = new_state.tutorial.content.len();
                 new_state.selected_index = Some(len - 1);
+                Rc::new(new_state)
+            }
+            TutorialAction::InsertAfterSelected(bricks) => {
+                let mut new_state = (*self).clone();
+                new_state.insert_after_selected(&bricks);
                 Rc::new(new_state)
             }
             TutorialAction::RemoveSelected => {
@@ -82,16 +102,14 @@ impl Reducible for TutorialViewState {
             TutorialAction::LoadJson(text) => {
                 let mut new_state = (*self).clone();
                 match new_state.load_json(&text) {
-                    Ok(()) => {
-                        new_state.selected_index = None;
-                        Rc::new(new_state)
-                    }
+                    Ok(()) => Rc::new(new_state),
                     Err(e) => {
                         web_sys::console::error_1(&format!("Import error: {e}").into());
                         self
                     }
                 }
             }
+            TutorialAction::Restore(state) => Rc::new(state),
         }
     }
 }
@@ -125,6 +143,18 @@ impl TutorialViewState {
         self.tutorial.content.push(box_from_state(state));
     }
 
+    fn insert_after_selected(&mut self, bricks: &[BrickState]) {
+        if bricks.is_empty() {
+            return;
+        }
+        let insert_at = match self.selected_index {
+            Some(index) => (index + 1).min(self.tutorial.content.len()),
+            None => self.tutorial.content.len(),
+        };
+        let iter = bricks.iter().map(box_from_state);
+        self.tutorial.content.splice(insert_at..insert_at, iter);
+    }
+
     pub fn get_brick_state_list(&self) -> Vec<BrickState> {
         self.tutorial
             .content
@@ -156,7 +186,17 @@ impl TutorialViewState {
     }
 
     fn load_json(&mut self, json: &str) -> Result<(), String> {
-        self.tutorial = Tutorial::from_json(json)?;
+        let mut imported = Tutorial::from_json(json)?;
+        if imported.content.is_empty() {
+            return Ok(());
+        }
+        let insert_at = match self.selected_index {
+            Some(index) => (index + 1).min(self.tutorial.content.len()),
+            None => self.tutorial.content.len(),
+        };
+        self.tutorial
+            .content
+            .splice(insert_at..insert_at, imported.content.drain(..));
         Ok(())
     }
 

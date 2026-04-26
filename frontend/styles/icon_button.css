@@ -26,3 +26,23 @@
     display: block;
     pointer-events: none;
 }
+
+.icon-button .icon-spinner {
+    animation: icon-button-spin 0.8s linear infinite;
+}
+
+.icon-button .icon-text {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    color: inherit;
+}
+
+@keyframes icon-button-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

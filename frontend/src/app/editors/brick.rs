@@ -30,13 +30,14 @@ pub fn brick_editor(props: &BrickEditorProps) -> Html {
         })
     };
 
+
     html! {
         <EditorGroup title="Brick Editor">
             <BrickPreviewView
-                    brick={props.brick.clone()}
-                    dispatcher={props.dispatcher.clone()}
-                />
-                <BrickSettingsView
+                brick={props.brick.clone()}
+                dispatcher={props.dispatcher.clone()}
+            />
+            <BrickSettingsView
                 brick={props.brick.clone()}
                 dispatcher={props.dispatcher.clone()}
                 {on_add_to_tutorial}

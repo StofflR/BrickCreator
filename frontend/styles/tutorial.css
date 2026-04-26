@@ -3,6 +3,8 @@
     flex-direction: column;
     gap: var(--gap);
     min-width: 0;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 /* ── Toolbar & brick-controls rows ─────────────────────────── */
@@ -22,7 +24,9 @@
     flex-direction: column;
     gap: 0;
     overflow-y: auto;
-    max-height: 480px;
+    max-height: none;
+    flex: 1 1 0;
+    min-height: 0;
     padding: 2px;
 }
 
@@ -67,7 +71,9 @@
 
 .tutorial-view__preview {
     overflow-y: auto;
-    max-height: 480px;
+    max-height: none;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 .tutorial-view__preview-img {
@@ -75,6 +81,39 @@
     height: auto;
     display: block;
     border-radius: var(--radius);
+}
+
+
+/* Export mode bar */
+.tutorial-view__export-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    padding: 8px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-raised);
+}
+
+.tutorial-view__export-bar button {
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.tutorial-view__export-bar button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.tutorial-view__export-label {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-right: 6px;
 }
 
 .tutorial-view__empty {
@@ -123,6 +162,21 @@
 .brick-controls button:disabled {
     opacity: 0.4;
     cursor: not-allowed;
+}
+
+
+/* Export selection checkbox */
+.brick-export {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+.brick-export input {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
 }
 
 /* BrickView takes space left */

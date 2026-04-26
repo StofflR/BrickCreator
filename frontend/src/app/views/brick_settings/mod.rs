@@ -8,8 +8,6 @@ mod types_group;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
-use crate::interfaces::utility;
-#[cfg(target_arch = "wasm32")]
 use colors_group::ColorsGroup;
 #[cfg(target_arch = "wasm32")]
 use content_group::ContentGroup;
@@ -62,47 +60,7 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
     let color_name = current.color_scheme.name.clone();
     let selected_color = current.color_scheme.clone();
 
-    let on_import_json = {
-        let dispatcher = props.dispatcher.clone();
-        Callback::from(move |_| {
-            let dispatcher = dispatcher.clone();
-            utility::upload_json(Callback::from(move |text: String| {
-                dispatcher.dispatch(StateAction::LoadJson(text));
-            }));
-        })
-    };
 
-    let on_export_json = {
-        let brick = props.brick.clone();
-        Callback::from(move |_| {
-            let json = brick.to_string();
-            if let Err(e) = utility::download_json(&json, "brick.json") {
-                web_sys::console::error_1(&format!("Export error: {e}").into());
-            }
-        })
-    };
-
-    let on_save_svg = {
-        let brick = props.brick.clone();
-        Callback::from(move |_| {
-            let svg = brick.clone().get_svg();
-            if let Err(e) = utility::download_svg(&svg, "brick.svg") {
-                web_sys::console::error_1(&format!("SVG error: {e}").into());
-            }
-        })
-    };
-
-    let on_save_png = {
-        let brick = props.brick.clone();
-        Callback::from(move |_| match brick.clone().get_png(1920) {
-            Ok(data) => {
-                if let Err(e) = utility::download_png(&data, "brick.png") {
-                    web_sys::console::error_1(&format!("PNG error: {e}").into());
-                }
-            }
-            Err(e) => web_sys::console::error_1(&format!("PNG render error: {e}").into()),
-        })
-    };
 
     html! {
         <div class="brick-settings-wrap">
@@ -110,21 +68,21 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
                 content={content_val}
                 on_content_input={on_content_input}
                 on_add_to_tutorial={props.on_add_to_tutorial.clone()}
-                on_import_json={on_import_json}
-                on_export_json={on_export_json}
-                on_save_svg={on_save_svg}
-                on_save_png={on_save_png}
             />
-            <div class="brick-settings__bottom">
-                <ColorsGroup
-                    selected_name={color_name}
-                    on_select={on_color_select}
-                />
-                <TypesGroup
-                    selected={brick_type}
-                    color_scheme={selected_color}
-                    on_select={on_brick_type_select}
-                />
+            <div class="brick-settings__selectors">
+                <div class="brick-settings__panel brick-settings__panel--colors">
+                    <ColorsGroup
+                        selected_name={color_name}
+                        on_select={on_color_select}
+                    />
+                </div>
+                <div class="brick-settings__panel brick-settings__panel--types">
+                    <TypesGroup
+                        selected={brick_type}
+                        color_scheme={selected_color}
+                        on_select={on_brick_type_select}
+                    />
+                </div>
             </div>
         </div>
     }

@@ -6,66 +6,35 @@ use crate::components::icon_button::IconButton;
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-const ICON_ADD: &str = include_str!("../../../res/add.svg");
-#[cfg(target_arch = "wasm32")]
-const ICON_UPLOAD: &str = include_str!("../../../res/upload.svg");
-#[cfg(target_arch = "wasm32")]
-const ICON_FILE_JSON: &str = include_str!("../../../res/file_json.svg");
-#[cfg(target_arch = "wasm32")]
-const ICON_IMAGE: &str = include_str!("../../../res/image.svg");
-#[cfg(target_arch = "wasm32")]
-const ICON_FILE_PNG: &str = include_str!("../../../res/file_png.svg");
-
+const ICON_ADD: &str = include_str!("../../../res/addBrick.svg");
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
 pub struct ContentGroupProps {
     pub content: String,
     pub on_content_input: Callback<InputEvent>,
     pub on_add_to_tutorial: Callback<MouseEvent>,
-    pub on_import_json: Callback<MouseEvent>,
-    pub on_export_json: Callback<MouseEvent>,
-    pub on_save_svg: Callback<MouseEvent>,
-    pub on_save_png: Callback<MouseEvent>,
 }
 
 #[cfg(target_arch = "wasm32")]
 #[function_component(ContentGroup)]
 pub fn content_group(props: &ContentGroupProps) -> Html {
     html! {
-        <EditorGroup title="Content">
+        <EditorGroup
+            title="Content"
+            header={html! {
+                <IconButton
+                    icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
+                    title="Add to tutorial"
+                    onclick={props.on_add_to_tutorial.clone()}
+                />
+            }}
+        >
             <textarea
                 class="brick-settings__content-input"
                 placeholder="Content…"
                 value={props.content.clone()}
                 oninput={props.on_content_input.clone()}
             />
-            <div class="brick-settings__buttons">
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
-                    title="Add to tutorial"
-                    onclick={props.on_add_to_tutorial.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
-                    title="Import JSON"
-                    onclick={props.on_import_json.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_JSON))}
-                    title="Export JSON"
-                    onclick={props.on_export_json.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_IMAGE))}
-                    title="Save SVG"
-                    onclick={props.on_save_svg.clone()}
-                />
-                <IconButton
-                    icon={Html::from_html_unchecked(AttrValue::from(ICON_FILE_PNG))}
-                    title="Save PNG"
-                    onclick={props.on_save_png.clone()}
-                />
-            </div>
         </EditorGroup>
     }
 }
