@@ -531,7 +531,6 @@ fn app() -> Html {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
-        let menu_open = menu_open.clone();
         let brick = brick.clone();
         let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
@@ -549,7 +548,6 @@ fn app() -> Html {
                 brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
-                menu_open.set(false);
             }
         })
     };
@@ -558,7 +556,6 @@ fn app() -> Html {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
-        let menu_open = menu_open.clone();
         let brick = brick.clone();
         let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
@@ -573,7 +570,6 @@ fn app() -> Html {
                 brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
-                menu_open.set(false);
             }
         })
     };
@@ -597,12 +593,11 @@ fn app() -> Html {
         .count();
     let can_undo = *history_index > 0;
     let can_redo = *history_index + 1 < (*history).len();
-    let menu_item_class = "flex w-full items-center gap-2.5 rounded-[calc(var(--app-radius)-2px)] bg-transparent px-2.5 py-2 text-left text-app-text transition-colors hover:bg-app-surface-raised disabled:cursor-not-allowed disabled:opacity-45";
     html! {
         <div class="flex h-screen flex-col overflow-hidden max-[900px]:relative">
             <div class="relative z-50 flex w-full items-center justify-between gap-2.5 overflow-visible border-b border-app-border bg-app-surface px-app-gap py-2.5 max-[900px]:order-2 max-[900px]:sticky max-[900px]:bottom-0 max-[900px]:z-[60] max-[900px]:justify-center max-[900px]:border-t max-[900px]:border-b-0 max-[900px]:bg-app-surface-raised max-[900px]:pb-[calc(10px+env(safe-area-inset-bottom))]">
             <div class="flex items-center gap-2.5 overflow-visible">
-                <div class="relative overflow-visible">
+                <div class="toolbar-menu">
                     <IconButton
                         icon={Html::from_html_unchecked(AttrValue::from(ICON_MENU))}
                         title="Menu"
@@ -612,33 +607,33 @@ fn app() -> Html {
                     if *menu_open {
                         <div class="toolbar-menu__dropdown" onmouseleave={on_menu_mouse_leave}>
                             <button
-                                class={menu_item_class}
+                                class="toolbar-menu__item"
                                 type="button"
                                 onclick={on_undo.clone()}
                                 disabled={!can_undo}
                             >
-                                <span class="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center" aria-hidden="true">
+                                <span class="toolbar-menu__icon" aria-hidden="true">
                                     {Html::from_html_unchecked(themed_menu_icon(ICON_UNDO))}
                                 </span>
                                 <span>{"Undo"}</span>
                             </button>
                             <button
-                                class={menu_item_class}
+                                class="toolbar-menu__item"
                                 type="button"
                                 onclick={on_redo.clone()}
                                 disabled={!can_redo}
                             >
-                                <span class="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center" aria-hidden="true">
+                                <span class="toolbar-menu__icon" aria-hidden="true">
                                     {Html::from_html_unchecked(themed_menu_icon(ICON_REDO))}
                                 </span>
                                 <span>{"Redo"}</span>
                             </button>
                             <button
-                                class={menu_item_class}
+                                class="toolbar-menu__item"
                                 type="button"
                                 onclick={on_help.clone()}
                             >
-                                <span class="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center" aria-hidden="true">
+                                <span class="toolbar-menu__icon" aria-hidden="true">
                                     {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
                                 </span>
                                 <span>{"Help"}</span>
