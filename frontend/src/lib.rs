@@ -2,6 +2,7 @@ pub mod app;
 pub mod components;
 pub mod generated;
 pub mod interfaces;
+pub mod style;
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen(start)]

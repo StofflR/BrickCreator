@@ -12,3 +12,7 @@ Cargo.lock
 .vscode/
 
 **/dist/
+node_modules/
+
+# Local frontend tooling binaries
+frontend/tools/

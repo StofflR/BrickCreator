@@ -63,20 +63,20 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
 
 
     html! {
-        <div class="brick-settings-wrap">
+        <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-app-gap overflow-hidden">
             <ContentGroup
                 content={content_val}
                 on_content_input={on_content_input}
                 on_add_to_tutorial={props.on_add_to_tutorial.clone()}
             />
-            <div class="brick-settings__selectors">
-                <div class="brick-settings__panel brick-settings__panel--colors">
+            <div class="flex min-h-0 flex-1 gap-app-gap overflow-hidden max-[900px]:flex-col">
+                <div class="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     <ColorsGroup
                         selected_name={color_name}
                         on_select={on_color_select}
                     />
                 </div>
-                <div class="brick-settings__panel brick-settings__panel--types">
+                <div class="flex min-h-0 min-w-0 flex-1 overflow-hidden">
                     <TypesGroup
                         selected={brick_type}
                         color_scheme={selected_color}

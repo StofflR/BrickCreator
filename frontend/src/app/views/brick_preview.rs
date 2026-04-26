@@ -45,22 +45,24 @@ pub fn brick_preview_view(props: &BrickPreviewViewProps) -> Html {
     let brick_type = props.brick.get_type();
 
     html! {
-        <div class="brick-preview">
-            <BrickView brick={props.brick.clone()} />
+        <div class="grid flex-none max-[900px]:max-h-[45vh]">
+            <BrickView
+                brick={props.brick.clone()}
+                class="col-start-1 row-start-1 h-full w-full overflow-hidden"
+            />
             <input
-                class="brick-preview__slider-y"
+                class="col-start-2 row-start-1 min-h-0 min-w-0 flex-1 [direction:ltr] [writing-mode:vertical-lr]"
                 type="range"
                 key={format!("y-slider-{:?}", brick_type)}
                 min="0" max="100" value={y_slider_val}
                 oninput={on_y_slider}
             />
             <input
-                class="brick-preview__slider-x"
+                class="col-start-1 row-start-2 min-h-0 min-w-0 flex-1"
                 type="range"
                 min="0" max="100" value={x_slider_val}
                 oninput={on_x_slider}
             />
-            <rect class="brick-preview__sizer" />
         </div>
     }
 }

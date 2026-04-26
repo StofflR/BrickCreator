@@ -21,7 +21,7 @@ pub struct TypesGroupProps {
 #[function_component(TypesGroup)]
 pub fn types_group(props: &TypesGroupProps) -> Html {
     html! {
-        <EditorGroup title="Brick Types">
+        <EditorGroup title="Brick Types" class="w-full" content_class="min-h-0 flex-1 overflow-y-auto">
             <BrickTypeView
                 selected={props.selected}
                 color_scheme={props.color_scheme.clone()}

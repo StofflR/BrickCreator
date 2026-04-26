@@ -8,21 +8,22 @@ use crate::components::sidebar::Sidebar;
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::catalog;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::ninepatch;
-#[cfg(target_arch = "wasm32")]
-#[cfg(target_arch = "wasm32")]
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::tutorial::{tutorial_from_states, tutorial_png_bytes, TutorialAction, TutorialViewState};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
 use shared::tutorial::Tutorial;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::closure::Closure;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
 use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
-#[cfg(target_arch = "wasm32")]
-#[cfg(target_arch = "wasm32")]
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
@@ -530,6 +531,7 @@ fn app() -> Html {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
+        let menu_open = menu_open.clone();
         let brick = brick.clone();
         let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
@@ -547,6 +549,7 @@ fn app() -> Html {
                 brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
+                menu_open.set(false);
             }
         })
     };
@@ -555,6 +558,7 @@ fn app() -> Html {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
+        let menu_open = menu_open.clone();
         let brick = brick.clone();
         let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
@@ -569,6 +573,7 @@ fn app() -> Html {
                 brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
+                menu_open.set(false);
             }
         })
     };
@@ -586,14 +591,18 @@ fn app() -> Html {
     };
 
     let tutorial_bricks = (*tutorial).get_brick_state_list();
-    let selected_count = (*export_selection).iter().filter(|selected| **selected).count();
+    let selected_count = (*export_selection)
+        .iter()
+        .filter(|selected| **selected)
+        .count();
     let can_undo = *history_index > 0;
     let can_redo = *history_index + 1 < (*history).len();
+    let menu_item_class = "flex w-full items-center gap-2.5 rounded-[calc(var(--app-radius)-2px)] bg-transparent px-2.5 py-2 text-left text-app-text transition-colors hover:bg-app-surface-raised disabled:cursor-not-allowed disabled:opacity-45";
     html! {
-        <div class="page">
-            <div class="transfer-toolbar">
-            <div class="transfer-toolbar__left">
-                <div class="toolbar-menu">
+        <div class="flex h-screen flex-col overflow-hidden max-[900px]:relative">
+            <div class="relative z-50 flex w-full items-center justify-between gap-2.5 overflow-visible border-b border-app-border bg-app-surface px-app-gap py-2.5 max-[900px]:order-2 max-[900px]:sticky max-[900px]:bottom-0 max-[900px]:z-[60] max-[900px]:justify-center max-[900px]:border-t max-[900px]:border-b-0 max-[900px]:bg-app-surface-raised max-[900px]:pb-[calc(10px+env(safe-area-inset-bottom))]">
+            <div class="flex items-center gap-2.5 overflow-visible">
+                <div class="relative overflow-visible">
                     <IconButton
                         icon={Html::from_html_unchecked(AttrValue::from(ICON_MENU))}
                         title="Menu"
@@ -603,33 +612,33 @@ fn app() -> Html {
                     if *menu_open {
                         <div class="toolbar-menu__dropdown" onmouseleave={on_menu_mouse_leave}>
                             <button
-                                class="toolbar-menu__item"
+                                class={menu_item_class}
                                 type="button"
                                 onclick={on_undo.clone()}
                                 disabled={!can_undo}
                             >
-                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                <span class="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center" aria-hidden="true">
                                     {Html::from_html_unchecked(themed_menu_icon(ICON_UNDO))}
                                 </span>
                                 <span>{"Undo"}</span>
                             </button>
                             <button
-                                class="toolbar-menu__item"
+                                class={menu_item_class}
                                 type="button"
                                 onclick={on_redo.clone()}
                                 disabled={!can_redo}
                             >
-                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                <span class="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center" aria-hidden="true">
                                     {Html::from_html_unchecked(themed_menu_icon(ICON_REDO))}
                                 </span>
                                 <span>{"Redo"}</span>
                             </button>
                             <button
-                                class="toolbar-menu__item"
+                                class={menu_item_class}
                                 type="button"
                                 onclick={on_help.clone()}
                             >
-                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                <span class="inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center" aria-hidden="true">
                                     {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
                                 </span>
                                 <span>{"Help"}</span>
@@ -644,7 +653,7 @@ fn app() -> Html {
                     onclick={toggle_theme.clone()}
                 />
             </div>
-            <div class="transfer-toolbar__right">
+            <div class="flex items-center gap-2.5 overflow-visible">
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
                     title="Import JSON"
@@ -673,8 +682,8 @@ fn app() -> Html {
                 />
             </div>
         </div>
-            <div class="page__content">
-                <div class="page__main">
+            <div class="flex min-h-0 flex-1 overflow-hidden max-[900px]:order-1 max-[900px]:h-[calc(100dvh-56px)] max-[900px]:pb-[56px]">
+                <div class="flex min-w-0 flex-1 flex-col overflow-auto p-app-gap max-[900px]:h-full max-[900px]:flex-auto max-[900px]:pr-[calc(var(--app-gap)+var(--app-toggle-width))]">
                     <BrickEditor
                         brick={(*brick).clone()}
                         dispatcher={brick_dispatcher.clone()}

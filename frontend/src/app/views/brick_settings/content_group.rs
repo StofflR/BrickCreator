@@ -21,6 +21,8 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
     html! {
         <EditorGroup
             title="Content"
+            class="flex-none overflow-hidden"
+            content_class="flex-none overflow-hidden max-[900px]:items-start"
             header={html! {
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
@@ -30,7 +32,7 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
             }}
         >
             <textarea
-                class="brick-settings__content-input"
+                class="min-h-[8lh] flex-1 resize-none rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised px-2.5 py-1.5 text-[14px] text-app-text outline-none focus:border-app-accent max-[900px]:max-h-[6lh] max-[900px]:min-h-[4lh]"
                 placeholder="Content…"
                 value={props.content.clone()}
                 oninput={props.on_content_input.clone()}

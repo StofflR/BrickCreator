@@ -21,7 +21,7 @@ pub fn color_view(props: &ColorViewProps) -> Html {
     let colors = (*model).all_colors();
 
     html! {
-        <div class="color-view">
+        <div class="flex flex-wrap gap-1.5 max-[900px]:h-auto max-[900px]:items-center max-[900px]:gap-2 max-[900px]:overflow-visible">
             { for colors.into_iter().map(|color| {
                 let key = color.name.clone();
                 let selected = color.name == props.selected_name;

@@ -21,9 +21,29 @@ pub struct IconButtonProps {
 #[function_component(IconButton)]
 pub fn icon_button(props: &IconButtonProps) -> Html {
     let button_class = classes!(
-        "icon-button",
+        "inline-flex",
+        "h-9",
+        "w-9",
+        "shrink-0",
+        "items-center",
+        "justify-center",
+        "rounded-[var(--app-radius)]",
+        "border",
+        "border-app-border",
+        "bg-app-surface-raised",
+        "p-0",
+        "text-app-text",
+        "transition-colors",
+        "hover:bg-app-border",
+        "disabled:cursor-not-allowed",
+        "disabled:opacity-40",
+        "disabled:hover:bg-app-surface-raised",
+        "[&_svg]:pointer-events-none",
+        "[&_.icon-spinner]:animate-spin",
+        "[&_.icon-text]:text-base",
+        "[&_.icon-text]:leading-none",
+        "[&_.icon-text]:font-bold",
         props.class.clone(),
-        props.disabled.then_some("icon-button--disabled"),
     );
 
     let onclick = {

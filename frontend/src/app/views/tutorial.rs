@@ -77,7 +77,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
 
     if props.bricks.is_empty() {
         html! {
-            <div class="tutorial-view__empty">
+            <div class="py-6 text-center text-[12px] text-app-text-muted">
                 { "Add bricks to build your tutorial" }
             </div>
         }
@@ -88,9 +88,9 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                 selected_index={props.selected_index}
                 on_select={props.on_select.clone()}
                 on_move={props.on_move.clone()}
-                class="tutorial-view__brick-list"
-                item_class="tutorial-view__brick-item"
-                item_selected_class="tutorial-view__brick-item--selected"
+                class="flex min-h-0 flex-1 flex-col overflow-y-auto p-[2px]"
+                item_class="relative mx-[-4px] my-[2%] cursor-pointer rounded-[var(--app-radius)] border-2 border-transparent px-1 py-0 transition-colors select-none hover:border-app-border [&+&]:mt-[-2.5%] [&[draggable='true']]:cursor-grab active:[&[draggable='true']]:cursor-grabbing"
+                item_selected_class="border-app-accent"
             >
                 {
                     for props.bricks.iter().enumerate().map(|(idx, state)| {
@@ -98,10 +98,10 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
 
                         html_nested! {
                             <DragDropItem>
-                                <div class="brick-row">
+                                <div class="flex items-center gap-1.5">
 
                                     if props.export_mode {
-                                        <label class="brick-export" onclick={{
+                                        <label class="flex items-center justify-center px-1" onclick={{
                                             let on_toggle_export = props.on_toggle_export.clone();
                                             move |event: MouseEvent| {
                                                 event.stop_propagation();
@@ -109,13 +109,14 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                             }
                                         }}>
                                             <input
+                                                class="h-4 w-4 cursor-pointer"
                                                 type="checkbox"
                                                 checked={props.export_selection.get(idx).copied().unwrap_or(false)}
                                             />
                                         </label>
                                     }
 
-                                    <div class="brick-controls">
+                                    <div class="flex flex-col justify-center gap-0.5">
                                         {
                                             if is_selected {
                                                 let len = props.bricks.len();
@@ -124,6 +125,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                                 html! {
                                                     <>
                                                         <button
+                                                            class="block rounded-[var(--app-radius)] border border-app-border bg-app-bg px-1.5 py-0.5 text-[14px] transition-colors hover:border-app-accent disabled:cursor-not-allowed disabled:opacity-40"
                                                             onclick={{
                                                                 let on_move = on_move.clone();
                                                                 move |event: MouseEvent| {
@@ -139,6 +141,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                                         </button>
 
                                                         <button
+                                                            class="block rounded-[var(--app-radius)] border border-app-border bg-app-bg px-1.5 py-0.5 text-[14px] transition-colors hover:border-app-accent disabled:cursor-not-allowed disabled:opacity-40"
                                                             onclick={{
                                                                 let on_move = on_move.clone();
                                                                 move |event: MouseEvent| {
@@ -160,7 +163,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                         }
                                     </div>
 
-                                    <BrickView brick={state.clone()} />
+                                    <BrickView brick={state.clone()} class="flex-1" />
 
                                 </div>
                             </DragDropItem>

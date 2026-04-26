@@ -13,9 +13,9 @@ pub struct TutorialPreviewViewProps {
 pub fn tutorial_preview_view(props: &TutorialPreviewViewProps) -> Html {
     if let Some(ref data) = props.preview_data {
         html! {
-            <div class="tutorial-view__preview">
+            <div class="min-h-0 flex-1 overflow-y-auto">
                 <img
-                    class="tutorial-view__preview-img"
+                    class="block h-auto w-full rounded-[var(--app-radius)]"
                     src={format!("data:image/png;base64,{}", data)}
                     alt="Tutorial preview"
                 />
@@ -23,7 +23,7 @@ pub fn tutorial_preview_view(props: &TutorialPreviewViewProps) -> Html {
         }
     } else {
         html! {
-            <div class="tutorial-view__empty">
+            <div class="py-6 text-center text-[12px] text-app-text-muted">
                 { "No bricks to preview" }
             </div>
         }
