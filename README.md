@@ -51,6 +51,20 @@ BrickCreator works in modern web browsers on:
 - Tablets
 - Smartphones
 
+## Running BrickCreator
+
+To run the project locally, make sure you have Rust and Trunk installed.
+
+1. Change into the frontend directory:
+   `cd frontend`
+2. Start the development server:
+   `trunk serve`
+3. Open BrickCreator in your browser at:
+   `http://127.0.0.1:8080`
+
+If you want to run it from the repository root instead, you can use:
+`trunk serve --config frontend/Trunk.toml`
+
 ## Contributing
 
 Contributions, ideas, and improvements are welcome through the Catrobat project.
