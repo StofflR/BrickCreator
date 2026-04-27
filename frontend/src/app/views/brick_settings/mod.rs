@@ -33,10 +33,8 @@ pub struct BrickSettingsViewProps {
 pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
     let on_content_input = {
         let dispatcher = props.dispatcher.clone();
-        Callback::from(move |e: InputEvent| {
-            if let Some(input) = e.target_dyn_into::<web_sys::HtmlTextAreaElement>() {
-                dispatcher.dispatch(StateAction::ChangeContent(input.value()));
-            }
+        Callback::from(move |content: String| {
+            dispatcher.dispatch(StateAction::ChangeContent(content));
         })
     };
 
