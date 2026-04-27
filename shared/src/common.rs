@@ -127,7 +127,7 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
             format!(
                 "<g transform=\"translate({} {})\">{}</g>",
                 offset_x,
-                index as f32 * cap_height * 1.1 + 20.0 + offset_y,
+                index as f32 * cap_height * 1.2 + 20.0 + offset_y,
                 line_content
             )
         });

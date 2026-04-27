@@ -6,6 +6,7 @@ pub const VARIABLE_MARKER: &str = "*";
 pub const DROP_MARKER: &str = "_";
 const DROP_SCALE: f32 = 0.8;
 const DROPDOWN_TRIANGLE_SCALE: f32 = 0.65;
+const DROPDOWN_LINE_INDENT: f32 = 6.0;
 pub const DEFAULT_X_OFFSET: f32 = 0.11;
 pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
 
@@ -179,7 +180,8 @@ pub fn handle_dropdown_line(content: &str, brick: &BaseBrick, available_width: f
     let triangle_bottom = triangle_top + triangle_height;
 
     format!(
-        "{}<polygon fill=\"{}\" points=\"{},{} {},{} {},{}\" />",
+        "<g transform=\"translate({} 0)\">{}<polygon fill=\"{}\" points=\"{},{} {},{} {},{}\" /></g>",
+        DROPDOWN_LINE_INDENT,
         handle_drop(content, color_scheme, font_size),
         color_scheme.text,
         triangle_x,
