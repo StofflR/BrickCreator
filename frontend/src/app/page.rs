@@ -7,6 +7,8 @@ use crate::components::sidebar::Sidebar;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
+use crate::components::modal::Modal;
+#[cfg(target_arch = "wasm32")]
 use crate::style;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
@@ -559,19 +561,11 @@ fn app() -> Html {
             help_submenu_open.set(false);
         })
     };
-    };
-
-    let on_menu_mouse_leave = {
-        let menu_open = menu_open.clone();
-        Callback::from(move |_: MouseEvent| menu_open.set(false))
-    };
 
     let on_undo = {
         let history = history.clone();
         let history_index = history_index.clone();
         let restoring_history = restoring_history.clone();
-        let brick = brick.clone();
-        let tutorial = tutorial.clone();
         let brick = brick.clone();
         let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
@@ -583,9 +577,6 @@ fn app() -> Html {
             }
             let target_index = current_index - 1;
             if let Some(snapshot) = (*history).get(target_index).cloned() {
-                let pending_restores = usize::from(*brick != snapshot.brick)
-                    + usize::from(*tutorial != snapshot.tutorial);
-                *restoring_history.borrow_mut() = pending_restores;
                 let pending_restores = usize::from(*brick != snapshot.brick)
                     + usize::from(*tutorial != snapshot.tutorial);
                 *restoring_history.borrow_mut() = pending_restores;
@@ -602,17 +593,12 @@ fn app() -> Html {
         let restoring_history = restoring_history.clone();
         let brick = brick.clone();
         let tutorial = tutorial.clone();
-        let brick = brick.clone();
-        let tutorial = tutorial.clone();
         let brick_dispatcher = brick_dispatcher.clone();
         let tutorial_dispatcher = tutorial_dispatcher.clone();
         Callback::from(move |_: MouseEvent| {
             let current_index = *history_index;
             let target_index = current_index + 1;
             if let Some(snapshot) = (*history).get(target_index).cloned() {
-                let pending_restores = usize::from(*brick != snapshot.brick)
-                    + usize::from(*tutorial != snapshot.tutorial);
-                *restoring_history.borrow_mut() = pending_restores;
                 let pending_restores = usize::from(*brick != snapshot.brick)
                     + usize::from(*tutorial != snapshot.tutorial);
                 *restoring_history.borrow_mut() = pending_restores;
@@ -759,7 +745,7 @@ fn app() -> Html {
                                 onclick={on_about.clone()}
                             >
                                 <span class={style::TOOLBAR_MENU_ICON} aria-hidden="true">
-                                    {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
+                                    {Html::from_html_unchecked(themed_menu_icon(ICON_ABOUT))}
                                 </span>
                                 <span>{"About"}</span>
                             </button>

@@ -57,5 +57,5 @@ Contributions, ideas, and improvements are welcome through the Catrobat project.
 
 ## License
 
-TODO!!
+!!TODO Issue #13!!
 ```

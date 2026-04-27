@@ -4009,10 +4009,101 @@
   align-items: center;
   justify-content: center;
 }
+.toolbar-menu__submenu-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.toolbar-menu__item--submenu-toggle {
+  justify-content: space-between;
+}
+.toolbar-menu__item--submenu-toggle > span:nth-child(2) {
+  flex: 1 1 auto;
+}
+.toolbar-menu__caret {
+  margin-left: auto;
+  color: var(--app-text-muted);
+  transition: transform 150ms ease;
+}
+.toolbar-menu__item--active .toolbar-menu__caret {
+  transform: rotate(90deg);
+}
+.toolbar-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 6px;
+  border-radius: calc(var(--app-radius) - 2px);
+  background: color-mix(in srgb, var(--app-surface-raised) 72%, transparent);
+}
+.toolbar-submenu__item {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: calc(var(--app-radius) - 4px);
+  background: transparent;
+  padding: 8px 10px 8px 36px;
+  color: var(--app-text);
+  text-align: left;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+.toolbar-submenu__item:hover {
+  background: var(--app-surface);
+}
+.explanation-modal {
+  max-width: min(680px, 92vw);
+}
+.explanation-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.explanation-modal__row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+}
+.explanation-modal__icon {
+  display: inline-flex;
+  min-height: 28px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-text);
+}
+.explanation-modal__icon svg {
+  display: block;
+  max-height: 22px;
+  max-width: 22px;
+}
+.explanation-modal__icon--text {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+.explanation-modal__text {
+  min-width: 0;
+  padding-top: 3px;
+  line-height: 1.4;
+  color: var(--app-text);
+}
 @media (max-width: 900px) {
   .toolbar-menu__dropdown {
     top: auto;
     bottom: calc(100% + 8px);
+  }
+  .explanation-modal__row {
+    grid-template-columns: 32px minmax(0, 1fr);
+    gap: 10px;
+  }
+  .explanation-modal__icon {
+    width: 32px;
+  }
+  .toolbar-submenu__item {
+    padding-left: 28px;
   }
 }
 @property --tw-contain-layout {
