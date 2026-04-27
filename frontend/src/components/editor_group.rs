@@ -31,8 +31,8 @@ pub fn editor_group(props: &EditorGroupProps) -> Html {
                 style::EDITOR_GROUP_HEADER,
                 props.header_class.clone(),
             )}>
-                <span class="text-[12px] font-semibold tracking-[0.06em] text-app-text-muted uppercase">{props.title.clone()}</span>
-                <div class="ml-auto flex items-center gap-1.5">
+                <span class={style::EDITOR_GROUP_TITLE}>{props.title.clone()}</span>
+                <div class={style::EDITOR_GROUP_ACTIONS}>
                     { props.header.clone() }
                 </div>
             </div>

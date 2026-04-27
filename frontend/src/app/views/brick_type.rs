@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::brick_type_card::BrickTypeCard;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick_type::{BrickTypeModel, StaticBrickTypeModel};
@@ -23,7 +25,7 @@ pub fn brick_type_view(props: &BrickTypeViewProps) -> Html {
     let model = StaticBrickTypeModel;
 
     html! {
-        <div class="flex flex-wrap gap-1.5 max-[900px]:grid max-[900px]:h-auto max-[900px]:grid-cols-2 max-[900px]:auto-rows-[minmax(64px,_auto)] max-[900px]:content-stretch max-[900px]:overflow-visible">
+        <div class={style::BRICK_TYPE_VIEW_GRID}>
             { for model.all_types().iter().map(|entry| {
                 html! {
                     <BrickTypeCard

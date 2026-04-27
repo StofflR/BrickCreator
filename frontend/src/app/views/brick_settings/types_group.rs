@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::app::views::brick_type::BrickTypeView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
@@ -21,7 +23,11 @@ pub struct TypesGroupProps {
 #[function_component(TypesGroup)]
 pub fn types_group(props: &TypesGroupProps) -> Html {
     html! {
-        <EditorGroup title="Brick Types" class="w-full" content_class="min-h-0 flex-1 overflow-y-auto">
+        <EditorGroup
+            title="Brick Types"
+            class={style::BRICK_SETTINGS_EDITOR_GROUP_CLASS}
+            content_class={style::BRICK_SETTINGS_EDITOR_GROUP_CONTENT}
+        >
             <BrickTypeView
                 selected={props.selected}
                 color_scheme={props.color_scheme.clone()}

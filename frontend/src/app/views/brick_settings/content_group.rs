@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
@@ -21,8 +23,8 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
     html! {
         <EditorGroup
             title="Content"
-            class="flex-none overflow-hidden"
-            content_class="flex-none overflow-hidden max-[900px]:items-start"
+            class={style::CONTENT_GROUP_CLASS}
+            content_class={style::CONTENT_GROUP_CONTENT_CLASS}
             header={html! {
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_ADD))}
@@ -32,7 +34,7 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
             }}
         >
             <textarea
-                class="min-h-[8lh] flex-1 resize-none rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised px-2.5 py-1.5 text-[14px] text-app-text outline-none focus:border-app-accent max-[900px]:max-h-[6lh] max-[900px]:min-h-[4lh]"
+                class={style::CONTENT_GROUP_TEXTAREA}
                 placeholder="Content…"
                 value={props.content.clone()}
                 oninput={props.on_content_input.clone()}

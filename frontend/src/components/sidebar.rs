@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use gloo::events::EventListener;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
@@ -117,40 +119,20 @@ pub fn sidebar(props: &SidebarProps) -> Html {
     };
 
     let sidebar_class = classes!(
-        "flex",
-        "min-w-0",
-        "w-[var(--app-toggle-width)]",
-        "shrink-0",
-        "flex-row",
-        "overflow-hidden",
-        "border-l",
-        "border-app-border",
-        "bg-app-surface",
-        "transition-[width]",
-        "duration-200",
-        "ease-in-out",
-        "max-[900px]:fixed",
-        "max-[900px]:right-0",
-        "max-[900px]:top-0",
-        "max-[900px]:bottom-0",
-        "max-[900px]:z-20",
-        "max-[900px]:h-dvh",
-        "max-[900px]:w-[var(--app-toggle-width)]",
-        "max-[900px]:shadow-[-8px_0_16px_rgba(0,0,0,0.25)]",
-        (*open).then_some("w-[calc(var(--app-sidebar-width)+var(--app-toggle-width))]"),
-        (*open).then_some("max-[900px]:w-screen"),
+        style::SIDEBAR_ROOT,
+        (*open).then_some(style::SIDEBAR_ROOT_OPEN),
     );
 
     html! {
         <div class={sidebar_class}>
-            <div class="flex h-full basis-[var(--app-toggle-width)] flex-col border-r border-app-border max-[900px]:absolute max-[900px]:left-0 max-[900px]:top-0 max-[900px]:bottom-0 max-[900px]:z-[2] max-[900px]:bg-app-surface">
-                <button class="flex flex-1 items-center justify-center bg-transparent px-0 py-2 text-app-text transition-colors hover:bg-app-surface-raised" onclick={toggle} type="button">
+            <div class={style::SIDEBAR_TOGGLE_WRAP}>
+                <button class={style::SIDEBAR_TOGGLE_BUTTON} onclick={toggle} type="button">
                     { chevron_icon }
                 </button>
             </div>
             if *open {
                 <div
-                    class="flex min-w-0 flex-1 flex-col overflow-auto w-[var(--app-sidebar-width)] p-app-gap max-[900px]:w-screen max-[900px]:pl-[calc(var(--app-gap)+var(--app-toggle-width))]"
+                    class={style::SIDEBAR_CONTENT}
                     aria-hidden="false"
                 >
                     { props.children.clone() }

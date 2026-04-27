@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::card::Card;
 #[cfg(target_arch = "wasm32")]
 use shared::color::ColorScheme;
@@ -38,8 +40,8 @@ pub fn color_card(props: &ColorCardProps) -> Html {
     html! {
         <Card
             title={props.color.name.clone()}
-            class="max-[900px]:border-2"
-            content_class="mt-auto"
+            class={style::COLOR_CARD_CLASS}
+            content_class={style::COLOR_CARD_CONTENT_CLASS}
             selectable={true}
             selected={props.selected}
             mobile_circle={true}
@@ -47,13 +49,13 @@ pub fn color_card(props: &ColorCardProps) -> Html {
             onclick={on_click}
         >
             <div
-                class="hidden h-5 w-5 rounded-full max-[900px]:block"
+                class={style::COLOR_CARD_SWATCH}
                 style={swatch_style}
                 aria-hidden="true"
             ></div>
-            <div class="flex w-full items-stretch gap-1 max-[900px]:hidden">
-                <div class="flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[3px] px-1 py-px text-center text-[10px] leading-none max-[900px]:px-[3px] max-[900px]:py-px max-[900px]:text-[10px]" style={color_style}>{"abc"}</div>
-                <div class="flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[3px] px-1 py-px text-center text-[10px] leading-none max-[900px]:px-[3px] max-[900px]:py-px max-[900px]:text-[10px]" style={shade_style}>{"abc"}</div>
+            <div class={style::COLOR_CARD_SWATCH_ROW}>
+                <div class={style::COLOR_CARD_SWATCH_VALUE} style={color_style}>{"abc"}</div>
+                <div class={style::COLOR_CARD_SWATCH_VALUE} style={shade_style}>{"abc"}</div>
             </div>
         </Card>
     }

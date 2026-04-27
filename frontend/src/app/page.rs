@@ -7,6 +7,8 @@ use crate::components::sidebar::Sidebar;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::catalog;
@@ -594,10 +596,10 @@ fn app() -> Html {
     let can_undo = *history_index > 0;
     let can_redo = *history_index + 1 < (*history).len();
     html! {
-        <div class="flex h-screen flex-col overflow-hidden max-[900px]:relative">
-            <div class="relative z-50 flex w-full items-center justify-between gap-2.5 overflow-visible border-b border-app-border bg-app-surface px-app-gap py-2.5 max-[900px]:order-2 max-[900px]:sticky max-[900px]:bottom-0 max-[900px]:z-[60] max-[900px]:justify-center max-[900px]:border-t max-[900px]:border-b-0 max-[900px]:bg-app-surface-raised max-[900px]:pb-[calc(10px+env(safe-area-inset-bottom))]">
-            <div class="flex items-center gap-2.5 overflow-visible">
-                <div class="toolbar-menu">
+        <div class={style::APP_ROOT}>
+            <div class={style::APP_TOOLBAR}>
+            <div class={style::APP_TOOLBAR_GROUP}>
+                <div class={style::TOOLBAR_MENU}>
                     <IconButton
                         icon={Html::from_html_unchecked(AttrValue::from(ICON_MENU))}
                         title="Menu"
@@ -605,35 +607,35 @@ fn app() -> Html {
                         onclick={on_menu.clone()}
                     />
                     if *menu_open {
-                        <div class="toolbar-menu__dropdown" onmouseleave={on_menu_mouse_leave}>
+                        <div class={style::TOOLBAR_MENU_DROPDOWN} onmouseleave={on_menu_mouse_leave}>
                             <button
-                                class="toolbar-menu__item"
+                                class={style::TOOLBAR_MENU_ITEM}
                                 type="button"
                                 onclick={on_undo.clone()}
                                 disabled={!can_undo}
                             >
-                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                <span class={style::TOOLBAR_MENU_ICON} aria-hidden="true">
                                     {Html::from_html_unchecked(themed_menu_icon(ICON_UNDO))}
                                 </span>
                                 <span>{"Undo"}</span>
                             </button>
                             <button
-                                class="toolbar-menu__item"
+                                class={style::TOOLBAR_MENU_ITEM}
                                 type="button"
                                 onclick={on_redo.clone()}
                                 disabled={!can_redo}
                             >
-                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                <span class={style::TOOLBAR_MENU_ICON} aria-hidden="true">
                                     {Html::from_html_unchecked(themed_menu_icon(ICON_REDO))}
                                 </span>
                                 <span>{"Redo"}</span>
                             </button>
                             <button
-                                class="toolbar-menu__item"
+                                class={style::TOOLBAR_MENU_ITEM}
                                 type="button"
                                 onclick={on_help.clone()}
                             >
-                                <span class="toolbar-menu__icon" aria-hidden="true">
+                                <span class={style::TOOLBAR_MENU_ICON} aria-hidden="true">
                                     {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
                                 </span>
                                 <span>{"Help"}</span>
@@ -646,9 +648,9 @@ fn app() -> Html {
                     title={if *light { "Switch to dark mode" } else { "Switch to light mode" }}
                     label="Theme"
                     onclick={toggle_theme.clone()}
-                />
-            </div>
-            <div class="flex items-center gap-2.5 overflow-visible">
+                    />
+                </div>
+            <div class={style::APP_TOOLBAR_GROUP}>
                 <IconButton
                     icon={Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
                     title="Import JSON"
@@ -677,8 +679,8 @@ fn app() -> Html {
                 />
             </div>
         </div>
-            <div class="flex min-h-0 flex-1 overflow-hidden max-[900px]:order-1 max-[900px]:h-[calc(100dvh-56px)] max-[900px]:pb-[56px]">
-                <div class="flex min-w-0 flex-1 flex-col overflow-auto p-app-gap max-[900px]:h-full max-[900px]:flex-auto max-[900px]:pr-[calc(var(--app-gap)+var(--app-toggle-width))]">
+            <div class={style::APP_MAIN}>
+                <div class={style::APP_EDITOR_WRAP}>
                     <BrickEditor
                         brick={(*brick).clone()}
                         dispatcher={brick_dispatcher.clone()}

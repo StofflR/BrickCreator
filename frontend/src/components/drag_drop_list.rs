@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -10,12 +12,12 @@ pub struct DragDropListProps {
     pub selected_index: Option<usize>,
     pub on_select: Callback<usize>,
     pub on_move: Callback<(usize, usize)>,
-    #[prop_or("drag-drop-list".to_string())]
-    pub class: String,
-    #[prop_or("drag-drop-list__item".to_string())]
-    pub item_class: String,
-    #[prop_or("drag-drop-list__item--selected".to_string())]
-    pub item_selected_class: String,
+    #[prop_or(AttrValue::Static(style::DRAG_DROP_LIST))]
+    pub class: AttrValue,
+    #[prop_or(AttrValue::Static(style::DRAG_DROP_LIST_ITEM))]
+    pub item_class: AttrValue,
+    #[prop_or(AttrValue::Static(style::DRAG_DROP_LIST_ITEM_SELECTED))]
+    pub item_selected_class: AttrValue,
 }
 
 #[cfg(target_arch = "wasm32")]

@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
@@ -20,6 +22,6 @@ pub fn brick_view(props: &BrickViewProps) -> Html {
         js_sys::encode_uri_component(&svg)
     );
     html! {
-        <img class={classes!("block", props.class.clone())} src={data_uri} />
+        <img class={classes!(style::BRICK_VIEW_IMAGE, props.class.clone())} src={data_uri} />
     }
 }

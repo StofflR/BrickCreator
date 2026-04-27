@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::app::views::color::ColorView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
@@ -18,7 +20,11 @@ pub struct ColorsGroupProps {
 #[function_component(ColorsGroup)]
 pub fn colors_group(props: &ColorsGroupProps) -> Html {
     html! {
-        <EditorGroup title="Colors" class="w-full" content_class="min-h-0 flex-1 overflow-y-auto">
+        <EditorGroup
+            title="Colors"
+            class={style::BRICK_SETTINGS_EDITOR_GROUP_CLASS}
+            content_class={style::BRICK_SETTINGS_EDITOR_GROUP_CONTENT}
+        >
             <ColorView
                 selected_name={props.selected_name.clone()}
                 on_select={props.on_select.clone()}

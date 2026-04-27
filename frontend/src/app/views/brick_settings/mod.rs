@@ -6,6 +6,8 @@ mod content_group;
 mod types_group;
 
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
 use colors_group::ColorsGroup;
@@ -63,20 +65,20 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
 
 
     html! {
-        <div class="flex min-h-0 min-w-0 flex-1 flex-col gap-app-gap overflow-hidden">
+        <div class={style::BRICK_SETTINGS_ROOT}>
             <ContentGroup
                 content={content_val}
                 on_content_input={on_content_input}
                 on_add_to_tutorial={props.on_add_to_tutorial.clone()}
             />
-            <div class="flex min-h-0 flex-1 gap-app-gap overflow-hidden max-[900px]:flex-col">
-                <div class="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+            <div class={style::BRICK_SETTINGS_ROW}>
+                <div class={style::BRICK_SETTINGS_COLUMN}>
                     <ColorsGroup
                         selected_name={color_name}
                         on_select={on_color_select}
                     />
                 </div>
-                <div class="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+                <div class={style::BRICK_SETTINGS_COLUMN}>
                     <TypesGroup
                         selected={brick_type}
                         color_scheme={selected_color}

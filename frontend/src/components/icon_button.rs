@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -21,28 +23,7 @@ pub struct IconButtonProps {
 #[function_component(IconButton)]
 pub fn icon_button(props: &IconButtonProps) -> Html {
     let button_class = classes!(
-        "inline-flex",
-        "h-9",
-        "w-9",
-        "shrink-0",
-        "items-center",
-        "justify-center",
-        "rounded-[var(--app-radius)]",
-        "border",
-        "border-app-border",
-        "bg-app-surface-raised",
-        "p-0",
-        "text-app-text",
-        "transition-colors",
-        "hover:bg-app-border",
-        "disabled:cursor-not-allowed",
-        "disabled:opacity-40",
-        "disabled:hover:bg-app-surface-raised",
-        "[&_svg]:pointer-events-none",
-        "[&_.icon-spinner]:animate-spin",
-        "[&_.icon-text]:text-base",
-        "[&_.icon-text]:leading-none",
-        "[&_.icon-text]:font-bold",
+        style::ICON_BUTTON,
         props.class.clone(),
     );
 
