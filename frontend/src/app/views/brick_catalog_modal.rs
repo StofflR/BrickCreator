@@ -2,6 +2,8 @@
 use std::collections::BTreeMap;
 
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -59,12 +61,16 @@ pub fn brick_catalog_modal(props: &BrickCatalogModalProps) -> Html {
             hint="Double-click to add"
             on_close={props.on_close.clone()}
         >
-            <div class="brick-catalog">
+            <div class={style::BRICK_CATALOG_GROUPS}>
                 { for groups.into_iter().map(|(group, entries)| {
                     html! {
-                        <div class="brick-catalog__group" key={group.clone()}>
-                            <EditorGroup title={group.clone()}>
-                                <div class="brick-catalog__grid">
+                        <div class={style::BRICK_CATALOG_GROUP_WRAP} key={group.clone()}>
+                            <EditorGroup
+                                title={group.clone()}
+                                class={style::BRICK_CATALOG_EDITOR_GROUP_CLASS}
+                                content_class={style::BRICK_CATALOG_EDITOR_GROUP_CONTENT}
+                            >
+                                <div class={style::BRICK_CATALOG_GRID}>
                                     { for entries.into_iter().map(|(path, brick)| {
                                         let on_add_brick = props.on_add_brick.clone();
                                         let on_dblclick = if let Some(brick) = brick.clone() {
@@ -77,14 +83,15 @@ pub fn brick_catalog_modal(props: &BrickCatalogModalProps) -> Html {
                                             <Card
                                                 key={path}
                                                 title={label_from_path(path)}
+                                                class={style::BRICK_CATALOG_CARD}
                                                 selectable={true}
                                                 ondblclick={on_dblclick}
                                             >
-                                                <div class="brick-catalog__thumb" title={path}>
+                                                <div class={style::BRICK_CATALOG_PREVIEW_FRAME} title={path}>
                                                     if let Some(brick) = brick {
-                                                        <BrickView brick={brick} />
+                                                        <BrickView brick={brick} class={style::BRICK_CATALOG_PREVIEW_IMAGE} />
                                                     } else {
-                                                        <div class="card-label">{ "Invalid brick" }</div>
+                                                        <div class={style::BRICK_CATALOG_INVALID}>{ "Invalid brick" }</div>
                                                     }
                                                 </div>
                                             </Card>

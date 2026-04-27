@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
@@ -170,6 +172,8 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
     html! {
         <EditorGroup
             title="Content"
+            class={style::CONTENT_GROUP_CLASS}
+            content_class={style::CONTENT_GROUP_CONTENT_CLASS}
             header={html! {
                 <>
                     <IconButton
@@ -180,9 +184,9 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
                 </>
             }}
         >
-            <div class="brick-settings__content-shell">
+            <div class={style::CONTENT_GROUP_SHELL} onclick={close_context_menu_click}>
                 <textarea
-                    class="brick-settings__content-input"
+                    class={style::CONTENT_GROUP_TEXTAREA}
                     placeholder={EMPTY_BRICK_HINT}
                     ref={textarea_ref}
                     value={props.content.clone()}
@@ -191,16 +195,15 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
                     onkeyup={on_keyup}
                     onmouseup={on_mouseup}
                     oncontextmenu={on_context_menu}
-                    onclick={close_context_menu_click}
                 />
                 if let Some((x, y)) = *context_menu {
                     <div
-                        class="brick-settings__context-menu"
+                        class={style::CONTENT_GROUP_CONTEXT_MENU}
                         style={format!("left:{}px; top:{}px;", x, y)}
                         onmousedown={keep_focus_on_menu.clone()}
                     >
                         <button
-                            class="brick-settings__context-item"
+                            class={style::CONTENT_GROUP_CONTEXT_ITEM}
                             type="button"
                             onmousedown={on_variable}
                             disabled={!has_selection}
@@ -208,7 +211,7 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
                             {"Make variable"}
                         </button>
                         <button
-                            class="brick-settings__context-item"
+                            class={style::CONTENT_GROUP_CONTEXT_ITEM}
                             type="button"
                             onmousedown={on_dropdown}
                             disabled={!has_selection}

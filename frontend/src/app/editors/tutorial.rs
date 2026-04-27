@@ -9,6 +9,8 @@ use crate::app::views::tutorial_settings::TutorialSettingsView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
@@ -104,7 +106,7 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
 
     html! {
         <EditorGroup title="Tutorial Editor">
-            <div class="tutorial-view">
+            <div class={style::TUTORIAL_EDITOR_CONTENT}>
                 if *catalog_open {
                     <BrickCatalogModal
                         on_close={{
@@ -130,14 +132,14 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
                     show_preview={preview}
                 />
                 if props.export_mode {
-                    <div class="tutorial-view__export-bar">
-                        <div class="tutorial-view__export-label">{format!("Selected {} of {}", props.selected_count, props.total_bricks)}</div>
-                        <button type="button" onclick={props.on_export_select_all.clone()} disabled={props.total_bricks == 0}>{"Select all"}</button>
-                        <button type="button" onclick={props.on_export_clear.clone()} disabled={props.total_bricks == 0}>{"Clear"}</button>
-                        <button type="button" onclick={props.on_export_json.clone()} disabled={props.selected_count == 0}>{"Export JSON"}</button>
-                        <button type="button" onclick={props.on_export_png.clone()} disabled={props.selected_count == 0}>{"Export PNG"}</button>
-                        <button type="button" onclick={props.on_export_svg.clone()} disabled={props.selected_count == 0}>{"Export SVG"}</button>
-                        <button type="button" onclick={props.on_exit_export.clone()}>{"Done"}</button>
+                    <div class={style::TUTORIAL_EDITOR_EXPORT_BAR}>
+                        <div class={style::TUTORIAL_EDITOR_EXPORT_STATUS}>{format!("Selected {} of {}", props.selected_count, props.total_bricks)}</div>
+                        <button class={style::TUTORIAL_EDITOR_EXPORT_BUTTON} type="button" onclick={props.on_export_select_all.clone()} disabled={props.total_bricks == 0}>{"Select all"}</button>
+                        <button class={style::TUTORIAL_EDITOR_EXPORT_BUTTON} type="button" onclick={props.on_export_clear.clone()} disabled={props.total_bricks == 0}>{"Clear"}</button>
+                        <button class={style::TUTORIAL_EDITOR_EXPORT_BUTTON} type="button" onclick={props.on_export_json.clone()} disabled={props.selected_count == 0}>{"Export JSON"}</button>
+                        <button class={style::TUTORIAL_EDITOR_EXPORT_BUTTON} type="button" onclick={props.on_export_png.clone()} disabled={props.selected_count == 0}>{"Export PNG"}</button>
+                        <button class={style::TUTORIAL_EDITOR_EXPORT_BUTTON} type="button" onclick={props.on_export_svg.clone()} disabled={props.selected_count == 0}>{"Export SVG"}</button>
+                        <button class={style::TUTORIAL_EDITOR_EXPORT_BUTTON} type="button" onclick={props.on_exit_export.clone()}>{"Done"}</button>
                     </div>
                 }
                 if preview {

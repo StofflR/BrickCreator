@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use gloo::events::EventListener;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
@@ -19,14 +21,7 @@ pub struct SidebarProps {
 #[cfg(target_arch = "wasm32")]
 #[function_component(Sidebar)]
 pub fn sidebar(props: &SidebarProps) -> Html {
-    let open = use_state(|| {
-        gloo::utils::window()
-            .inner_width()
-            .ok()
-            .and_then(|v| v.as_f64())
-            .map(|w| w > 900.0)
-            .unwrap_or(false)
-    });
+    let open = use_state(|| true);
     let touch_start = use_mut_ref(|| None::<(f64, f64)>);
 
     {
@@ -34,6 +29,19 @@ pub fn sidebar(props: &SidebarProps) -> Html {
         let touch_start = touch_start.clone();
         use_effect(move || {
             let window = gloo::utils::window();
+            let resize_window = window.clone();
+            let resize_open = open.clone();
+            let resize_listener = EventListener::new(&window, "resize", move |_| {
+                let width = resize_window
+                    .inner_width()
+                    .ok()
+                    .and_then(|v| v.as_f64())
+                    .unwrap_or(0.0);
+                if width > 900.0 && !*resize_open {
+                    resize_open.set(true);
+                }
+            });
+
             let start_window = window.clone();
             let _start_open = open.clone();
             let start_touch = touch_start.clone();
@@ -92,6 +100,7 @@ pub fn sidebar(props: &SidebarProps) -> Html {
             });
 
             move || {
+                drop(resize_listener);
                 drop(start_listener);
                 drop(end_listener);
             }
@@ -109,17 +118,23 @@ pub fn sidebar(props: &SidebarProps) -> Html {
         Html::from_html_unchecked(AttrValue::from(CHEVRON_LEFT))
     };
 
-    let sidebar_class = classes!("page__sidebar", (*open).then_some("page__sidebar--open"),);
+    let sidebar_class = classes!(
+        style::SIDEBAR_ROOT,
+        (*open).then_some(style::SIDEBAR_ROOT_OPEN),
+    );
 
     html! {
         <div class={sidebar_class}>
-            <div class="sidebar-strip">
-                <button class="sidebar-toggle" onclick={toggle} type="button">
+            <div class={style::SIDEBAR_TOGGLE_WRAP}>
+                <button class={style::SIDEBAR_TOGGLE_BUTTON} onclick={toggle} type="button">
                     { chevron_icon }
                 </button>
             </div>
             if *open {
-                <div class="sidebar-content">
+                <div
+                    class={style::SIDEBAR_CONTENT}
+                    aria-hidden="false"
+                >
                     { props.children.clone() }
                 </div>
             }

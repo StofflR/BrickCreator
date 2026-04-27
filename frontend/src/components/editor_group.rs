@@ -1,10 +1,18 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Properties, PartialEq)]
 pub struct EditorGroupProps {
     pub title: AttrValue,
+    #[prop_or_default]
+    pub class: Classes,
+    #[prop_or_default]
+    pub header_class: Classes,
+    #[prop_or_default]
+    pub content_class: Classes,
     #[prop_or_default]
     pub header: Html,
     #[prop_or_default]
@@ -15,14 +23,23 @@ pub struct EditorGroupProps {
 #[function_component(EditorGroup)]
 pub fn editor_group(props: &EditorGroupProps) -> Html {
     html! {
-        <div class="editor-group">
-            <div class="editor-group__header">
-                <span class="editor-group__title">{props.title.clone()}</span>
-                <div class="editor-group__header-actions">
+        <div class={classes!(
+            style::EDITOR_GROUP_ROOT,
+            props.class.clone(),
+        )}>
+            <div class={classes!(
+                style::EDITOR_GROUP_HEADER,
+                props.header_class.clone(),
+            )}>
+                <span class={style::EDITOR_GROUP_TITLE}>{props.title.clone()}</span>
+                <div class={style::EDITOR_GROUP_ACTIONS}>
                     { props.header.clone() }
                 </div>
             </div>
-            <div class="editor-group__content">
+            <div class={classes!(
+                style::EDITOR_GROUP_CONTENT,
+                props.content_class.clone(),
+            )}>
                 { for props.children.iter() }
             </div>
         </div>

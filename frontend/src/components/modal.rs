@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -9,6 +11,8 @@ pub struct ModalProps {
     pub hint: AttrValue,
     #[prop_or_default]
     pub class: Classes,
+    #[prop_or_default]
+    pub body_class: Classes,
     pub on_close: Callback<MouseEvent>,
     #[prop_or_default]
     pub children: Children,
@@ -31,20 +35,34 @@ pub fn modal(props: &ModalProps) -> Html {
     });
 
     html! {
-        <div class="modal-overlay" onclick={on_overlay_click.clone()}>
-            <div class={classes!("modal", props.class.clone())} onclick={on_modal_click}>
-                <div class="modal__header">
-                    <div class="modal__title-row">
-                        <div class="modal__title">{props.title.clone()}</div>
+        <div class={style::MODAL_OVERLAY} onclick={on_overlay_click.clone()}>
+            <div
+                class={classes!(
+                    style::MODAL_ROOT,
+                    props.class.clone(),
+                )}
+                onclick={on_modal_click}
+            >
+                <div class={style::MODAL_HEADER}>
+                    <div class={style::MODAL_TITLE_ROW}>
+                        <div class={style::MODAL_TITLE}>{props.title.clone()}</div>
                         if !props.hint.is_empty() {
-                            <div class="modal__hint">{props.hint.clone()}</div>
+                            <div class={style::MODAL_HINT}>{props.hint.clone()}</div>
                         }
                     </div>
-                    <button class="modal__close" type="button" onclick={props.on_close.clone()} aria-label="Close">
+                    <button
+                        class={style::MODAL_CLOSE_BUTTON}
+                        type="button"
+                        onclick={props.on_close.clone()}
+                        aria-label="Close"
+                    >
                         {"×"}
                     </button>
                 </div>
-                <div class="modal__body">
+                <div class={classes!(
+                    style::MODAL_BODY,
+                    props.body_class.clone(),
+                )}>
                     { for props.children.iter() }
                 </div>
             </div>

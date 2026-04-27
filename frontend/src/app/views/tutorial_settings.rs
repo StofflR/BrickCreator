@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
@@ -39,7 +41,7 @@ pub fn tutorial_settings_view(props: &TutorialSettingsViewProps) -> Html {
     };
 
     html! {
-        <div class="tutorial-view__toolbar">
+        <div class={style::TUTORIAL_SETTINGS_ACTIONS}>
             <IconButton
                 icon={Html::from_html_unchecked(AttrValue::from(ICON_DELETE))}
                 title="Remove brick"

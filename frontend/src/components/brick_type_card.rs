@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::app::views::brick::BrickView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::card::Card;
@@ -41,8 +43,11 @@ pub fn brick_type_card(props: &BrickTypeCardProps) -> Html {
             selected={props.selected}
             onclick={on_click}
         >
-            <div class="brick-type-card-preview" aria-hidden="true">
-                <BrickView brick={preview_brick} />
+            <div class={style::BRICK_TYPE_CARD_PREVIEW_WRAP} aria-hidden="true">
+                <BrickView
+                    brick={preview_brick}
+                    class={style::BRICK_TYPE_CARD_PREVIEW_IMAGE}
+                />
             </div>
         </Card>
     }

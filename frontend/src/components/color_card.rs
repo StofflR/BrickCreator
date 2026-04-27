@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::card::Card;
 #[cfg(target_arch = "wasm32")]
 use shared::color::ColorScheme;
@@ -31,22 +33,29 @@ pub fn color_card(props: &ColorCardProps) -> Html {
         props.color.shade, props.color.text, props.color.border
     );
     let swatch_style = format!(
-        "--swatch-color:{};--swatch-shade:{};--swatch-border:{};",
-        props.color.color, props.color.shade, props.color.border
+        "background:linear-gradient(135deg, {} 0 50%, {} 50% 100%);",
+        props.color.color, props.color.shade
     );
 
     html! {
         <Card
             title={props.color.name.clone()}
-            class="card--color"
+            class={style::COLOR_CARD_CLASS}
+            content_class={style::COLOR_CARD_CONTENT_CLASS}
             selectable={true}
             selected={props.selected}
+            mobile_circle={true}
+            hide_title_on_mobile={true}
             onclick={on_click}
         >
-            <div class="color-card-mobile-swatch" style={swatch_style} aria-hidden="true"></div>
-            <div class="color-card-content">
-                <div class="color-card-sample" style={color_style}>{"abc"}</div>
-                <div class="color-card-sample" style={shade_style}>{"abc"}</div>
+            <div
+                class={style::COLOR_CARD_SWATCH}
+                style={swatch_style}
+                aria-hidden="true"
+            ></div>
+            <div class={style::COLOR_CARD_SWATCH_ROW}>
+                <div class={style::COLOR_CARD_SWATCH_VALUE} style={color_style}>{"abc"}</div>
+                <div class={style::COLOR_CARD_SWATCH_VALUE} style={shade_style}>{"abc"}</div>
             </div>
         </Card>
     }

@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::app::views::brick::BrickView;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
@@ -45,22 +47,24 @@ pub fn brick_preview_view(props: &BrickPreviewViewProps) -> Html {
     let brick_type = props.brick.get_type();
 
     html! {
-        <div class="brick-preview">
-            <BrickView brick={props.brick.clone()} />
+        <div class={style::BRICK_PREVIEW_GRID}>
+            <BrickView
+                brick={props.brick.clone()}
+                class={style::BRICK_PREVIEW_IMAGE}
+            />
             <input
-                class="brick-preview__slider-y"
+                class={style::BRICK_PREVIEW_Y_SLIDER}
                 type="range"
                 key={format!("y-slider-{:?}", brick_type)}
                 min="0" max="100" value={y_slider_val}
                 oninput={on_y_slider}
             />
             <input
-                class="brick-preview__slider-x"
+                class={style::BRICK_PREVIEW_X_SLIDER}
                 type="range"
                 min="0" max="100" value={x_slider_val}
                 oninput={on_x_slider}
             />
-            <rect class="brick-preview__sizer" />
         </div>
     }
 }

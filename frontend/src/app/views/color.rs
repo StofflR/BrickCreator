@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use crate::components::color_card::ColorCard;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::color::{BrickColorModel, ColorModel};
@@ -21,7 +23,7 @@ pub fn color_view(props: &ColorViewProps) -> Html {
     let colors = (*model).all_colors();
 
     html! {
-        <div class="color-view">
+        <div class={style::COLOR_VIEW_GRID}>
             { for colors.into_iter().map(|color| {
                 let key = color.name.clone();
                 let selected = color.name == props.selected_name;

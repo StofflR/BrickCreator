@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -21,9 +23,8 @@ pub struct IconButtonProps {
 #[function_component(IconButton)]
 pub fn icon_button(props: &IconButtonProps) -> Html {
     let button_class = classes!(
-        "icon-button",
+        style::ICON_BUTTON,
         props.class.clone(),
-        props.disabled.then_some("icon-button--disabled"),
     );
 
     let onclick = {

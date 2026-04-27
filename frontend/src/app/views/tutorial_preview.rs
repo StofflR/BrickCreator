@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -13,9 +15,9 @@ pub struct TutorialPreviewViewProps {
 pub fn tutorial_preview_view(props: &TutorialPreviewViewProps) -> Html {
     if let Some(ref data) = props.preview_data {
         html! {
-            <div class="tutorial-view__preview">
+            <div class={style::TUTORIAL_PREVIEW_WRAP}>
                 <img
-                    class="tutorial-view__preview-img"
+                    class={style::TUTORIAL_PREVIEW_IMAGE}
                     src={format!("data:image/png;base64,{}", data)}
                     alt="Tutorial preview"
                 />
@@ -23,7 +25,7 @@ pub fn tutorial_preview_view(props: &TutorialPreviewViewProps) -> Html {
         }
     } else {
         html! {
-            <div class="tutorial-view__empty">
+            <div class={style::TUTORIAL_EMPTY_STATE}>
                 { "No bricks to preview" }
             </div>
         }

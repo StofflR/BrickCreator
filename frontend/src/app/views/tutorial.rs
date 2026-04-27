@@ -3,6 +3,7 @@ use crate::{
     app::views::brick::BrickView,
     components::drag_drop_list::{DragDropItem, DragDropList},
     interfaces::brick::BrickState,
+    style,
 };
 
 #[cfg(target_arch = "wasm32")]
@@ -77,7 +78,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
 
     if props.bricks.is_empty() {
         html! {
-            <div class="tutorial-view__empty">
+            <div class={style::TUTORIAL_EMPTY_STATE}>
                 { "Add bricks to build your tutorial" }
             </div>
         }
@@ -88,9 +89,9 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                 selected_index={props.selected_index}
                 on_select={props.on_select.clone()}
                 on_move={props.on_move.clone()}
-                class="tutorial-view__brick-list"
-                item_class="tutorial-view__brick-item"
-                item_selected_class="tutorial-view__brick-item--selected"
+                class={style::TUTORIAL_LIST}
+                item_class={style::TUTORIAL_LIST_ITEM}
+                item_selected_class={style::TUTORIAL_LIST_ITEM_SELECTED}
             >
                 {
                     for props.bricks.iter().enumerate().map(|(idx, state)| {
@@ -98,10 +99,10 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
 
                         html_nested! {
                             <DragDropItem>
-                                <div class="brick-row">
+                                <div class={style::TUTORIAL_ROW}>
 
                                     if props.export_mode {
-                                        <label class="brick-export" onclick={{
+                                        <label class={style::TUTORIAL_EXPORT_LABEL} onclick={{
                                             let on_toggle_export = props.on_toggle_export.clone();
                                             move |event: MouseEvent| {
                                                 event.stop_propagation();
@@ -109,13 +110,14 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                             }
                                         }}>
                                             <input
+                                                class={style::TUTORIAL_EXPORT_CHECKBOX}
                                                 type="checkbox"
                                                 checked={props.export_selection.get(idx).copied().unwrap_or(false)}
                                             />
                                         </label>
                                     }
 
-                                    <div class="brick-controls">
+                                    <div class={style::TUTORIAL_MOVE_BUTTONS}>
                                         {
                                             if is_selected {
                                                 let len = props.bricks.len();
@@ -124,6 +126,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                                 html! {
                                                     <>
                                                         <button
+                                                            class={style::TUTORIAL_MOVE_BUTTON}
                                                             onclick={{
                                                                 let on_move = on_move.clone();
                                                                 move |event: MouseEvent| {
@@ -139,6 +142,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                                         </button>
 
                                                         <button
+                                                            class={style::TUTORIAL_MOVE_BUTTON}
                                                             onclick={{
                                                                 let on_move = on_move.clone();
                                                                 move |event: MouseEvent| {
@@ -160,7 +164,7 @@ pub fn tutorial_edit_view(props: &TutorialEditViewProps) -> Html {
                                         }
                                     </div>
 
-                                    <BrickView brick={state.clone()} />
+                                    <BrickView brick={state.clone()} class={style::TUTORIAL_BRICK_VIEW} />
 
                                 </div>
                             </DragDropItem>
