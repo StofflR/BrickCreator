@@ -26,7 +26,7 @@ pub fn types_group(props: &TypesGroupProps) -> Html {
         <EditorGroup
             title="Brick Types"
             class={style::BRICK_SETTINGS_EDITOR_GROUP_CLASS}
-            content_class={style::BRICK_SETTINGS_EDITOR_GROUP_CONTENT}
+            content_class={style::BRICK_TYPES_EDITOR_GROUP_CONTENT}
         >
             <BrickTypeView
                 selected={props.selected}

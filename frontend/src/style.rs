@@ -80,7 +80,10 @@ pub const COLOR_CARD_SWATCH_ROW: &str = "flex w-full items-stretch gap-1 max-[90
 pub const COLOR_CARD_SWATCH_VALUE: &str =
     "flex min-w-0 flex-1 items-center justify-center overflow-hidden rounded-[3px] px-1 py-px text-center text-[10px] leading-none max-[900px]:px-[3px] max-[900px]:py-px max-[900px]:text-[10px]";
 
-pub const BRICK_TYPE_CARD_PREVIEW_WRAP: &str = "h-[22px] overflow-hidden max-[900px]:h-[18px]";
+pub const BRICK_TYPE_CARD_CLASS: &str =
+    "brick-type-mobile-card";
+pub const BRICK_TYPE_CARD_TITLE_CLASS: &str = "brick-type-mobile-card-title";
+pub const BRICK_TYPE_CARD_PREVIEW_WRAP: &str = "h-[22px] overflow-hidden max-[900px]:h-[12px]";
 pub const BRICK_TYPE_CARD_PREVIEW_IMAGE: &str = "block h-full w-full object-contain object-left";
 
 pub const DRAG_DROP_LIST: &str = "drag-drop-list";
@@ -121,6 +124,8 @@ pub const TUTORIAL_SETTINGS_ACTIONS: &str = "flex flex-row flex-wrap gap-1.5";
 
 pub const BRICK_SETTINGS_EDITOR_GROUP_CLASS: &str = "w-full";
 pub const BRICK_SETTINGS_EDITOR_GROUP_CONTENT: &str = "min-h-0 flex-1 overflow-y-auto";
+pub const BRICK_TYPES_EDITOR_GROUP_CONTENT: &str =
+    "min-h-0 flex-1 overflow-y-auto max-[900px]:overflow-visible max-[900px]:p-2";
 pub const CONTENT_GROUP_CLASS: &str = "flex-none overflow-hidden";
 pub const CONTENT_GROUP_CONTENT_CLASS: &str = "flex-none overflow-hidden max-[900px]:items-start";
 pub const CONTENT_GROUP_SHELL: &str = "relative flex min-w-0 flex-1";
@@ -138,7 +143,7 @@ pub const BRICK_SETTINGS_COLUMN: &str = "flex min-h-0 min-w-0 flex-1 overflow-hi
 pub const COLOR_VIEW_GRID: &str =
     "flex flex-wrap gap-1.5 max-[900px]:h-auto max-[900px]:items-center max-[900px]:gap-2 max-[900px]:overflow-visible";
 pub const BRICK_TYPE_VIEW_GRID: &str =
-    "flex flex-wrap gap-1.5 max-[900px]:grid max-[900px]:h-auto max-[900px]:grid-cols-2 max-[900px]:auto-rows-[minmax(64px,_auto)] max-[900px]:content-stretch max-[900px]:overflow-visible";
+    "flex flex-wrap gap-2 brick-type-mobile-grid";
 
 pub const TUTORIAL_PREVIEW_WRAP: &str = "min-h-0 flex-1 overflow-y-auto";
 pub const TUTORIAL_PREVIEW_IMAGE: &str = "block h-auto w-full rounded-[var(--app-radius)]";
