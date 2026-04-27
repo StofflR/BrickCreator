@@ -1,7 +1,7 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 

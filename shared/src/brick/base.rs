@@ -5,8 +5,15 @@ use rusttype::{Font, Scale, point};
 pub const VARIABLE_MARKER: &str = "*";
 pub const DROP_MARKER: &str = "_";
 const DROP_SCALE: f32 = 0.8;
+const DROPDOWN_TRIANGLE_SCALE: f32 = 0.65;
 pub const DEFAULT_X_OFFSET: f32 = 0.11;
 pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum ContentLine {
+    Plain(String),
+    Dropdown(String),
+}
 
 // escaping: ensure that the symbol in the brick is read as text
 fn escape_xml_text(text: &str) -> String {
@@ -77,11 +84,19 @@ fn get_font_metrics(text: &str, scale: &Scale) -> (f32, f32) {
     (width, get_cap_height(scale))
 }
 
-fn handle_text(content: &str, color_scheme: &ColorScheme, font_size: f32, text_width: f32) -> String {
+fn handle_text(
+    content: &str,
+    color_scheme: &ColorScheme,
+    font_size: f32,
+    text_width: f32,
+) -> String {
     let content = escape_xml_text(content);
     format!(
         "<text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text>",
-        text_width.max(0.0), color_scheme.text, font_size, content
+        text_width.max(0.0),
+        color_scheme.text,
+        font_size,
+        content
     )
 }
 
@@ -140,12 +155,39 @@ fn line_segment_width(content: &str, text_scale: &Scale, drop_scale: &Scale) -> 
         })
         .sum()
 }
+
 fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32) -> String {
     let text_width = advance(content, &svg_text_scale(font_size));
     let content = escape_xml_text(content);
     format!(
         "<text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text>",
-        text_width.max(0.0), color_scheme.text, font_size, content
+        text_width.max(0.0),
+        color_scheme.text,
+        font_size,
+        content
+    )
+}
+
+pub fn handle_dropdown_line(content: &str, brick: &BaseBrick, available_width: f32) -> String {
+    let color_scheme = &brick.color_scheme;
+    let font_size = font_size_from_scale(&brick.scale) * DROP_SCALE;
+    let triangle_width = font_size * DROPDOWN_TRIANGLE_SCALE;
+    let triangle_height = triangle_width * 0.7;
+    let triangle_right_margin = font_size * 0.2;
+    let triangle_x = (available_width - triangle_width - triangle_right_margin).max(0.0);
+    let triangle_top = -font_size * 0.45;
+    let triangle_bottom = triangle_top + triangle_height;
+
+    format!(
+        "{}<polygon fill=\"{}\" points=\"{},{} {},{} {},{}\" />",
+        handle_drop(content, color_scheme, font_size),
+        color_scheme.text,
+        triangle_x,
+        triangle_top,
+        triangle_x + triangle_width,
+        triangle_top,
+        triangle_x + triangle_width / 2.0,
+        triangle_bottom,
     )
 }
 
@@ -195,7 +237,14 @@ fn handle_variable(content: &str, brick: &BaseBrick) -> String {
     let content = escape_xml_text(content);
     format!(
         "<g><text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text><line stroke=\"{}\" x1=\"0\" y1=\"{}\" x2=\"{}\" y2=\"{}\"/></g>",
-        text_width.max(0.0), color_scheme.text, font_size, content, color_scheme.text, underline_y, text_width, underline_y
+        text_width.max(0.0),
+        color_scheme.text,
+        font_size,
+        content,
+        color_scheme.text,
+        underline_y,
+        text_width,
+        underline_y
     )
 }
 
@@ -206,12 +255,16 @@ pub fn parse_line(content: &str, brick: &BaseBrick) -> String {
 
     segmetns
         .enumerate()
-        .map(|(index, element)| {
-            match index {
-                0 => (handle_line_segment(element, brick), advance(element, &text_scale)),
-                1 => (handle_variable(element, brick), advance(element, &text_scale)),
-                _ => (parse_line(element, brick), 0.0),
-            }
+        .map(|(index, element)| match index {
+            0 => (
+                handle_line_segment(element, brick),
+                advance(element, &text_scale),
+            ),
+            1 => (
+                handle_variable(element, brick),
+                advance(element, &text_scale),
+            ),
+            _ => (parse_line(element, brick), 0.0),
         })
         .fold(
             (0.0, String::new()),

@@ -1,9 +1,9 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::app::views::brick_type::BrickTypeView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use shared::color::ColorScheme;
 #[cfg(target_arch = "wasm32")]

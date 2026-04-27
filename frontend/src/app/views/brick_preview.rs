@@ -1,9 +1,9 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::app::views::brick::BrickView;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 

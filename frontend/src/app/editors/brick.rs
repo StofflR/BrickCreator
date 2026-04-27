@@ -30,7 +30,6 @@ pub fn brick_editor(props: &BrickEditorProps) -> Html {
         })
     };
 
-
     html! {
         <EditorGroup title="Brick Editor">
             <BrickPreviewView

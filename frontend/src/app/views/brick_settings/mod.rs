@@ -6,9 +6,9 @@ mod content_group;
 mod types_group;
 
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use colors_group::ColorsGroup;
 #[cfg(target_arch = "wasm32")]
@@ -59,8 +59,6 @@ pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
     let brick_type = props.brick.get_type();
     let color_name = current.color_scheme.name.clone();
     let selected_color = current.color_scheme.clone();
-
-
 
     html! {
         <div class={style::BRICK_SETTINGS_ROOT}>

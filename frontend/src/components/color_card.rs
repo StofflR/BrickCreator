@@ -1,7 +1,7 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::components::card::Card;
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use shared::color::ColorScheme;
 #[cfg(target_arch = "wasm32")]

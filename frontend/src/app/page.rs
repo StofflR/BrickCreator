@@ -3,11 +3,9 @@ use crate::app::editors::brick::BrickEditor;
 #[cfg(target_arch = "wasm32")]
 use crate::app::editors::tutorial::TutorialEditor;
 #[cfg(target_arch = "wasm32")]
-use crate::components::sidebar::Sidebar;
-#[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
-use crate::style;
+use crate::components::sidebar::Sidebar;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
 #[cfg(target_arch = "wasm32")]
@@ -15,15 +13,19 @@ use crate::interfaces::catalog;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::ninepatch;
 #[cfg(target_arch = "wasm32")]
-use crate::interfaces::tutorial::{tutorial_from_states, tutorial_png_bytes, TutorialAction, TutorialViewState};
+use crate::interfaces::tutorial::{
+    TutorialAction, TutorialViewState, tutorial_from_states, tutorial_png_bytes,
+};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use shared::tutorial::Tutorial;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::closure::Closure;
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::closure::Closure;
 #[cfg(target_arch = "wasm32")]
 use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 #[cfg(target_arch = "wasm32")]
@@ -547,7 +549,8 @@ fn app() -> Html {
                 let pending_restores = usize::from(*brick != snapshot.brick)
                     + usize::from(*tutorial != snapshot.tutorial);
                 *restoring_history.borrow_mut() = pending_restores;
-                brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
+                brick_dispatcher
+                    .dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
             }
@@ -569,7 +572,8 @@ fn app() -> Html {
                 let pending_restores = usize::from(*brick != snapshot.brick)
                     + usize::from(*tutorial != snapshot.tutorial);
                 *restoring_history.borrow_mut() = pending_restores;
-                brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
+                brick_dispatcher
+                    .dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
             }

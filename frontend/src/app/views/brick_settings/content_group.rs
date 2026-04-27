@@ -1,9 +1,9 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use shared::brick::base::{DROP_MARKER, EMPTY_BRICK_HINT, VARIABLE_MARKER};
 #[cfg(target_arch = "wasm32")]

@@ -22,10 +22,7 @@ pub struct IconButtonProps {
 #[cfg(target_arch = "wasm32")]
 #[function_component(IconButton)]
 pub fn icon_button(props: &IconButtonProps) -> Html {
-    let button_class = classes!(
-        style::ICON_BUTTON,
-        props.class.clone(),
-    );
+    let button_class = classes!(style::ICON_BUTTON, props.class.clone(),);
 
     let onclick = {
         let cb = props.onclick.clone();
