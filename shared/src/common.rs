@@ -61,35 +61,25 @@ impl<T: SVGRenderable> Pixmap for T {
     }
 }
 
-fn split_content_lines(content: &str, brick: &BaseBrick, max_width: f32) -> Vec<ContentLine> {
+fn split_content_lines(
+    content: &str,
+    brick: &BaseBrick,
+    max_width: f32,
+    dropdown_max_width: f32,
+) -> Vec<ContentLine> {
     let mut lines = Vec::new();
 
     for raw_line in content.split('\n') {
-        if !raw_line.contains(DROP_MARKER) {
-            lines.extend(
-                wrap_content_line(raw_line, brick, max_width)
-                    .into_iter()
-                    .map(ContentLine::Plain),
-            );
-            continue;
-        }
-
-        for (index, segment) in raw_line.split(DROP_MARKER).enumerate() {
-            let trimmed = segment.trim();
-            if trimmed.is_empty() {
-                continue;
-            }
-
-            if index % 2 == 0 {
-                lines.extend(
-                    wrap_content_line(trimmed, brick, max_width)
-                        .into_iter()
-                        .map(ContentLine::Plain),
-                );
-            } else {
-                lines.push(ContentLine::Dropdown(trimmed.to_string()));
-            }
-        }
+        let line_width = if line_has_dropdown(raw_line) {
+            dropdown_max_width
+        } else {
+            max_width
+        };
+        lines.extend(
+            wrap_content_line(raw_line, brick, line_width)
+                .into_iter()
+                .map(ContentLine::Plain),
+        );
     }
 
     if lines.is_empty() {
@@ -117,18 +107,25 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
         let offset_x = offset.0 * brick_width as f32;
         let offset_y = offset.1 * brick_height as f32;
         let available_width = (brick_width as f32 - offset_x * 2.0).max(0.0);
-        let lines = split_content_lines(content, self, available_width);
+        let text_width = (available_width - dropdown_triangle_reserved_width(&scale)).max(0.0);
+        let lines = split_content_lines(content, self, available_width, text_width);
 
         let svg_lines = lines.iter().enumerate().map(|(index, line)| {
-            let line_content = match line {
-                ContentLine::Plain(line) => parse_line(line, self),
-                ContentLine::Dropdown(line) => handle_dropdown_line(line, self, available_width),
+            let line = match line {
+                ContentLine::Plain(line) => line,
+            };
+            let line_content = parse_line(line, self);
+            let line_triangle = if line_has_dropdown(line) {
+                render_line_dropdown_triangle(&self.color_scheme, &scale, text_width)
+            } else {
+                String::new()
             };
             format!(
-                "<g transform=\"translate({} {})\">{}</g>",
+                "<g transform=\"translate({} {})\">{}{}</g>",
                 offset_x,
                 index as f32 * cap_height * 1.2 + 20.0 + offset_y,
-                line_content
+                line_content,
+                line_triangle
             )
         });
         svg_lines.collect()

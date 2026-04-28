@@ -6,14 +6,13 @@ pub const VARIABLE_MARKER: &str = "*";
 pub const DROP_MARKER: &str = "_";
 const DROP_SCALE: f32 = 0.8;
 const DROPDOWN_TRIANGLE_SCALE: f32 = 0.65;
-const DROPDOWN_LINE_INDENT: f32 = 6.0;
+const DROPDOWN_TRIANGLE_RIGHT_MARGIN: f32 = 0.2;
 pub const DEFAULT_X_OFFSET: f32 = 0.11;
 pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ContentLine {
     Plain(String),
-    Dropdown(String),
 }
 
 // escaping: ensure that the symbol in the brick is read as text
@@ -169,20 +168,30 @@ fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32) -> Str
     )
 }
 
-pub fn handle_dropdown_line(content: &str, brick: &BaseBrick, available_width: f32) -> String {
-    let color_scheme = &brick.color_scheme;
-    let font_size = font_size_from_scale(&brick.scale) * DROP_SCALE;
+pub fn dropdown_triangle_reserved_width(scale: &Scale) -> f32 {
+    let font_size = font_size_from_scale(scale) * DROP_SCALE;
+    let triangle_width = font_size * DROPDOWN_TRIANGLE_SCALE;
+    triangle_width + font_size * DROPDOWN_TRIANGLE_RIGHT_MARGIN
+}
+
+pub fn line_has_dropdown(content: &str) -> bool {
+    content.contains(DROP_MARKER)
+}
+
+pub fn render_line_dropdown_triangle(
+    color_scheme: &ColorScheme,
+    scale: &Scale,
+    text_width: f32,
+) -> String {
+    let font_size = font_size_from_scale(scale) * DROP_SCALE;
     let triangle_width = font_size * DROPDOWN_TRIANGLE_SCALE;
     let triangle_height = triangle_width * 0.7;
-    let triangle_right_margin = font_size * 0.2;
-    let triangle_x = (available_width - triangle_width - triangle_right_margin).max(0.0);
+    let triangle_x = text_width.max(0.0);
     let triangle_top = -font_size * 0.45;
     let triangle_bottom = triangle_top + triangle_height;
 
     format!(
-        "<g transform=\"translate({} 0)\">{}<polygon fill=\"{}\" points=\"{},{} {},{} {},{}\" /></g>",
-        DROPDOWN_LINE_INDENT,
-        handle_drop(content, color_scheme, font_size),
+        "<polygon fill=\"{}\" points=\"{},{} {},{} {},{}\" />",
         color_scheme.text,
         triangle_x,
         triangle_top,
@@ -260,7 +269,11 @@ pub fn parse_line(content: &str, brick: &BaseBrick) -> String {
         .map(|(index, element)| match index {
             0 => (
                 handle_line_segment(element, brick),
-                advance(element, &text_scale),
+                line_segment_width(
+                    element,
+                    &text_scale,
+                    &svg_text_scale(font_size * DROP_SCALE),
+                ),
             ),
             1 => (
                 handle_variable(element, brick),
