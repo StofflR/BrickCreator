@@ -2,6 +2,7 @@ use shared::color::{ALL_COLOR_SCHEMES, ColorScheme};
 
 pub trait ColorModel {
     fn default_colors(&self) -> &[ColorScheme];
+    fn custom_colors(&self) -> &[ColorScheme];
     fn all_colors(&self) -> Vec<ColorScheme>;
     fn add_custom_color(&mut self, color: ColorScheme) -> bool;
     fn remove_custom_color(&mut self, name: &str) -> bool;
@@ -22,6 +23,14 @@ impl BrickColorModel {
             custom_colors: Vec::new(),
         }
     }
+
+    pub fn with_custom_colors(custom_colors: Vec<ColorScheme>) -> Self {
+        let mut model = Self::new();
+        for color in custom_colors {
+            let _ = model.add_custom_color(color);
+        }
+        model
+    }
 }
 
 impl Default for BrickColorModel {
@@ -33,6 +42,10 @@ impl Default for BrickColorModel {
 impl ColorModel for BrickColorModel {
     fn default_colors(&self) -> &[ColorScheme] {
         &self.default_colors
+    }
+
+    fn custom_colors(&self) -> &[ColorScheme] {
+        &self.custom_colors
     }
 
     fn all_colors(&self) -> Vec<ColorScheme> {

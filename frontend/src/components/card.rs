@@ -28,6 +28,8 @@ pub struct CardProps {
     #[prop_or_default]
     pub ondblclick: Callback<MouseEvent>,
     #[prop_or_default]
+    pub oncontextmenu: Callback<MouseEvent>,
+    #[prop_or_default]
     pub children: Children,
 }
 
@@ -48,6 +50,7 @@ pub fn card(props: &CardProps) -> Html {
             class={card_class}
             onclick={props.onclick.clone()}
             ondblclick={props.ondblclick.clone()}
+            oncontextmenu={props.oncontextmenu.clone()}
         >
             <h4 class={classes!(
                 style::CARD_TITLE,

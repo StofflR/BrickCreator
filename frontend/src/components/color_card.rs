@@ -13,6 +13,10 @@ pub struct ColorCardProps {
     pub color: ColorScheme,
     pub selected: bool,
     pub on_select: Callback<ColorScheme>,
+    #[prop_or_default]
+    pub is_custom: bool,
+    #[prop_or_default]
+    pub on_context_menu: Callback<(String, MouseEvent)>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -22,6 +26,19 @@ pub fn color_card(props: &ColorCardProps) -> Html {
         let on_select = props.on_select.clone();
         let selected = props.color.clone();
         Callback::from(move |_| on_select.emit(selected.clone()))
+    };
+
+    let on_context_menu = {
+        let on_context_menu = props.on_context_menu.clone();
+        let color_name = props.color.name.clone();
+        let is_custom = props.is_custom;
+        Callback::from(move |e: MouseEvent| {
+            if is_custom {
+                e.prevent_default();
+                e.stop_propagation();
+                on_context_menu.emit((color_name.clone(), e));
+            }
+        })
     };
 
     let color_style = format!(
@@ -47,6 +64,7 @@ pub fn color_card(props: &ColorCardProps) -> Html {
             mobile_circle={true}
             hide_title_on_mobile={true}
             onclick={on_click}
+            oncontextmenu={on_context_menu}
         >
             <div
                 class={style::COLOR_CARD_SWATCH}

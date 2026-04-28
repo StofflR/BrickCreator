@@ -122,8 +122,8 @@ pub const TUTORIAL_SETTINGS_ACTIONS: &str = "flex flex-row flex-wrap gap-1.5";
 pub const BRICK_SETTINGS_EDITOR_GROUP_CLASS: &str = "w-full";
 pub const BRICK_SETTINGS_EDITOR_GROUP_CONTENT: &str = "min-h-0 flex-1 overflow-y-auto";
 pub const CONTENT_GROUP_CLASS: &str = "flex-none overflow-hidden";
-pub const CONTENT_GROUP_CONTENT_CLASS: &str = "flex-none overflow-hidden max-[900px]:items-start";
-pub const CONTENT_GROUP_SHELL: &str = "relative flex min-w-0 flex-1";
+pub const CONTENT_GROUP_CONTENT_CLASS: &str = "flex-none overflow-hidden max-[900px]:items-stretch";
+pub const CONTENT_GROUP_SHELL: &str = "relative flex min-w-0 flex-1 w-full";
 pub const CONTENT_GROUP_TEXTAREA: &str =
     "min-h-[8lh] w-full flex-1 resize-none rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised px-2.5 py-1.5 text-[14px] text-app-text outline-none focus:border-app-accent max-[900px]:max-h-[6lh] max-[900px]:min-h-[4lh]";
 pub const CONTENT_GROUP_CONTEXT_MENU: &str =
@@ -137,6 +137,55 @@ pub const BRICK_SETTINGS_COLUMN: &str = "flex min-h-0 min-w-0 flex-1 overflow-hi
 
 pub const COLOR_VIEW_GRID: &str =
     "flex flex-wrap gap-1.5 max-[900px]:h-auto max-[900px]:items-center max-[900px]:gap-2 max-[900px]:overflow-visible";
+pub const COLOR_VIEW_SHELL: &str = "relative";
+pub const COLOR_ADD_BUTTON: &str =
+    "flex h-16 w-[90px] shrink-0 flex-col items-center justify-center gap-1 rounded-[var(--app-radius)] border border-dashed border-app-border bg-app-surface-raised px-[10px] py-2 text-app-text transition-colors hover:border-app-accent hover:bg-app-surface max-[900px]:h-[30px] max-[900px]:w-[30px] max-[900px]:min-h-[30px] max-[900px]:min-w-[30px] max-[900px]:rounded-full max-[900px]:border-2 max-[900px]:p-0";
+pub const COLOR_ADD_BUTTON_ICON: &str =
+    "flex h-8 w-8 items-center justify-center rounded-full bg-app-surface text-[24px] leading-none max-[900px]:h-auto max-[900px]:w-auto max-[900px]:bg-transparent";
+pub const COLOR_ADD_BUTTON_LABEL: &str =
+    "text-center text-[11px] font-semibold leading-tight max-[900px]:hidden";
+pub const COLOR_MODAL_ROOT: &str = "h-auto max-h-[92vh] w-[min(720px,96vw)]";
+pub const COLOR_MODAL_BODY: &str = "gap-4";
+pub const COLOR_MODAL_GRID: &str =
+    "grid grid-cols-[minmax(0,1.3fr)_minmax(220px,0.9fr)] gap-4 max-[900px]:grid-cols-1";
+pub const COLOR_MODAL_FORM: &str = "flex flex-col gap-3";
+pub const COLOR_MODAL_FIELD: &str = "flex flex-col gap-1.5";
+pub const COLOR_MODAL_FIELD_ROW: &str =
+    "grid grid-cols-2 gap-3 max-[640px]:grid-cols-1";
+pub const COLOR_MODAL_LABEL: &str =
+    "text-[12px] font-semibold tracking-[0.04em] text-app-text-muted uppercase";
+pub const COLOR_MODAL_CHECKBOX_ROW: &str =
+    "flex items-start gap-2.5 rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised px-3 py-2.5";
+pub const COLOR_MODAL_CHECKBOX: &str =
+    "mt-0.5 h-4 w-4 cursor-pointer accent-[var(--app-accent)]";
+pub const COLOR_MODAL_CHECKBOX_TEXT: &str = "flex flex-col gap-0.5";
+pub const COLOR_MODAL_CHECKBOX_TITLE: &str = "text-[13px] font-semibold text-app-text";
+pub const COLOR_MODAL_CHECKBOX_HINT: &str = "text-[12px] text-app-text-muted";
+pub const COLOR_MODAL_TEXT_INPUT: &str =
+    "w-full rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised px-3 py-2 text-[14px] text-app-text outline-none transition-colors focus:border-app-accent";
+pub const COLOR_MODAL_COLOR_INPUT_WRAP: &str =
+    "flex items-center gap-2 rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised px-2 py-2";
+pub const COLOR_MODAL_COLOR_INPUT: &str =
+    "h-9 w-12 cursor-pointer rounded border border-app-border bg-transparent p-0";
+pub const COLOR_MODAL_COLOR_VALUE: &str =
+    "font-mono text-[12px] text-app-text-muted";
+pub const COLOR_MODAL_PREVIEW: &str =
+    "flex flex-col gap-3 rounded-[var(--app-radius)] border border-app-border bg-app-surface-raised p-3";
+pub const COLOR_MODAL_PREVIEW_TITLE: &str =
+    "text-[12px] font-semibold tracking-[0.04em] text-app-text-muted uppercase";
+pub const COLOR_MODAL_PREVIEW_CARD: &str =
+    "flex min-h-28 flex-col justify-between rounded-[var(--app-radius)] border border-app-border bg-app-surface p-3";
+pub const COLOR_MODAL_PREVIEW_NAME: &str = "text-[14px] font-semibold text-app-text";
+pub const COLOR_MODAL_PREVIEW_SWATCH_ROW: &str = "flex items-stretch gap-2";
+pub const COLOR_MODAL_PREVIEW_SWATCH: &str =
+    "flex min-h-14 flex-1 items-center justify-center rounded-[6px] text-sm font-semibold";
+pub const COLOR_MODAL_ERROR: &str =
+    "rounded-[var(--app-radius)] border border-red-500/40 bg-red-500/10 px-3 py-2 text-[12px] text-red-200";
+pub const COLOR_MODAL_ACTIONS: &str = "flex items-center justify-end gap-2";
+pub const COLOR_MODAL_BUTTON: &str =
+    "rounded-[var(--app-radius)] border border-app-border bg-app-surface px-3 py-2 text-app-text transition-colors hover:bg-app-border disabled:cursor-not-allowed disabled:opacity-50";
+pub const COLOR_MODAL_BUTTON_PRIMARY: &str =
+    "border-app-accent bg-app-accent text-white hover:bg-[color-mix(in_srgb,var(--app-accent)_85%,black)]";
 pub const BRICK_TYPE_VIEW_GRID: &str =
     "flex flex-wrap gap-1.5 max-[900px]:grid max-[900px]:h-auto max-[900px]:grid-cols-2 max-[900px]:auto-rows-[minmax(64px,_auto)] max-[900px]:content-stretch max-[900px]:overflow-visible";
 
