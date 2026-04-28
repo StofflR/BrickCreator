@@ -7,6 +7,8 @@ pub const DROP_MARKER: &str = "_";
 const DROP_SCALE: f32 = 0.8;
 const LEGACY_DEFAULT_X_OFFSET: f32 = 0.11;
 pub const DEFAULT_X_OFFSET: f32 = 0.0;
+pub const CONTENT_START_X_RATIO: f32 = 0.11;
+pub const CONTENT_END_PADDING_RATIO: f32 = 0.03;
 pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
 
 // escaping: ensure that the symbol in the brick is read as text
@@ -139,13 +141,31 @@ pub fn content_width(content: &str, brick: &BaseBrick) -> f32 {
 }
 
 fn line_segment_width(content: &str, text_scale: &Scale, drop_scale: &Scale) -> f32 {
+    line_segment_width_with_remaining_dropdowns(
+        content,
+        text_scale,
+        drop_scale,
+        &mut count_dropdowns_in_line_segment(content),
+    )
+}
+
+fn line_segment_width_with_remaining_dropdowns(
+    content: &str,
+    text_scale: &Scale,
+    drop_scale: &Scale,
+    remaining_dropdowns: &mut usize,
+) -> f32 {
     content
         .splitn(3, DROP_MARKER)
         .enumerate()
         .map(|(index, element)| match index {
             0 => advance(element, text_scale),
-            1 => dropdown_width(element, drop_scale.y),
-            _ => line_segment_width(element, text_scale, drop_scale),
+            1 => {
+                let show_triangle = *remaining_dropdowns == 1;
+                *remaining_dropdowns = remaining_dropdowns.saturating_sub(1);
+                dropdown_width(element, drop_scale.y, show_triangle)
+            }
+            _ => line_width_with_remaining_dropdowns(element, text_scale, drop_scale, remaining_dropdowns),
         })
         .sum()
 }
@@ -154,42 +174,29 @@ fn dropdown_triangle_width(font_size: f32) -> f32 {
     font_size * 0.6
 }
 
-fn dropdown_triangle_gap(font_size: f32) -> f32 {
-    font_size * 0.25
-}
-
-fn dropdown_width(content: &str, font_size: f32) -> f32 {
+fn dropdown_width(content: &str, font_size: f32, show_triangle: bool) -> f32 {
+    let _ = show_triangle;
     advance(content, &svg_text_scale(font_size))
-        + dropdown_triangle_gap(font_size)
-        + dropdown_triangle_width(font_size)
 }
 
-fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32) -> String {
+fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32, show_triangle: bool) -> String {
+    let _ = show_triangle;
     let text_width = advance(content, &svg_text_scale(font_size));
-    let triangle_gap = dropdown_triangle_gap(font_size);
-    let triangle_width = dropdown_triangle_width(font_size);
-    let triangle_left = text_width + triangle_gap;
-    let triangle_top = -font_size * 0.36;
-    let triangle_bottom = font_size * 0.02;
-    let triangle_middle = triangle_left + triangle_width / 2.0;
     let content = escape_xml_text(content);
     format!(
-        "<g><text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text><path d=\"M {} {} L {} {} L {} {} Z\" fill=\"{}\"/></g>",
+        "<g><text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text></g>",
         text_width.max(0.0),
         color_scheme.text,
         font_size,
-        content,
-        triangle_left,
-        triangle_top,
-        triangle_left + triangle_width,
-        triangle_top,
-        triangle_middle,
-        triangle_bottom,
-        color_scheme.text
+        content
     )
 }
 
-fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
+fn handle_line_segment_with_remaining_dropdowns(
+    content: &str,
+    brick: &BaseBrick,
+    remaining_dropdowns: &mut usize,
+) -> String {
     let segments = content.splitn(3, DROP_MARKER);
     let font_size = font_size_from_scale(&brick.scale);
     let text_scale = svg_text_scale(font_size);
@@ -205,13 +212,18 @@ fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
                 )
             }
             1 => {
-                let width = dropdown_width(element, drop_font_size);
+                let show_triangle = *remaining_dropdowns == 1;
+                *remaining_dropdowns = remaining_dropdowns.saturating_sub(1);
+                let width = dropdown_width(element, drop_font_size, show_triangle);
                 (
-                    handle_drop(element, &brick.color_scheme, drop_font_size),
+                    handle_drop(element, &brick.color_scheme, drop_font_size, show_triangle),
                     width,
                 )
             }
-            _ => (parse_line(element, brick), 0.0),
+            _ => (
+                parse_line_with_remaining_dropdowns(element, brick, remaining_dropdowns),
+                0.0,
+            ),
         })
         .fold(
             (0.0, String::new()),
@@ -225,6 +237,7 @@ fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
         )
         .1
 }
+
 fn handle_variable(content: &str, brick: &BaseBrick) -> String {
     let color_scheme = &brick.color_scheme;
     let font_size = font_size_from_scale(&brick.scale);
@@ -239,20 +252,40 @@ fn handle_variable(content: &str, brick: &BaseBrick) -> String {
 }
 
 pub fn parse_line(content: &str, brick: &BaseBrick) -> String {
+    parse_line_with_remaining_dropdowns(content, brick, &mut count_dropdowns_in_line(content))
+}
+
+fn parse_line_with_remaining_dropdowns(
+    content: &str,
+    brick: &BaseBrick,
+    remaining_dropdowns: &mut usize,
+) -> String {
     let segmetns = content.splitn(3, VARIABLE_MARKER);
     let font_size = font_size_from_scale(&brick.scale);
     let text_scale = svg_text_scale(font_size);
+    let drop_scale = svg_text_scale(font_size * DROP_SCALE);
 
     segmetns
         .enumerate()
         .map(|(index, element)| {
             match index {
-                0 => (
-                    handle_line_segment(element, brick),
-                    line_segment_width(element, &text_scale, &svg_text_scale(font_size * DROP_SCALE)),
-                ),
+                0 => {
+                    let mut width_remaining_dropdowns = *remaining_dropdowns;
+                    let current =
+                        handle_line_segment_with_remaining_dropdowns(element, brick, remaining_dropdowns);
+                    let advance = line_segment_width_with_remaining_dropdowns(
+                        element,
+                        &text_scale,
+                        &drop_scale,
+                        &mut width_remaining_dropdowns,
+                    );
+                    (current, advance)
+                }
                 1 => (handle_variable(element, brick), advance(element, &text_scale)),
-                _ => (parse_line(element, brick), 0.0),
+                _ => (
+                    parse_line_with_remaining_dropdowns(element, brick, remaining_dropdowns),
+                    0.0,
+                ),
             }
         })
         .fold(
@@ -266,6 +299,80 @@ pub fn parse_line(content: &str, brick: &BaseBrick) -> String {
             },
         )
         .1
+}
+
+fn count_dropdowns_in_line_segment(content: &str) -> usize {
+    content
+        .splitn(3, DROP_MARKER)
+        .enumerate()
+        .map(|(index, element)| match index {
+            1 => 1,
+            2 => count_dropdowns_in_line(element),
+            _ => 0,
+        })
+        .sum()
+}
+
+fn count_dropdowns_in_line(content: &str) -> usize {
+    content
+        .splitn(3, VARIABLE_MARKER)
+        .enumerate()
+        .map(|(index, element)| match index {
+            0 => count_dropdowns_in_line_segment(element),
+            2 => count_dropdowns_in_line(element),
+            _ => 0,
+        })
+        .sum()
+}
+
+pub fn line_has_dropdown(content: &str) -> bool {
+    count_dropdowns_in_line(content) > 0
+}
+
+pub fn render_line_dropdown_triangle(
+    color_scheme: &ColorScheme,
+    scale: &Scale,
+    line_width: f32,
+) -> String {
+    let font_size = font_size_from_scale(scale) * DROP_SCALE;
+    let triangle_width = dropdown_triangle_width(font_size);
+    let triangle_left = (line_width - triangle_width).max(0.0);
+    let triangle_top = -font_size * 0.36;
+    let triangle_bottom = font_size * 0.02;
+    let triangle_middle = triangle_left + triangle_width / 2.0;
+
+    format!(
+        "<path d=\"M {} {} L {} {} L {} {} Z\" fill=\"{}\"/>",
+        triangle_left,
+        triangle_top,
+        triangle_left + triangle_width,
+        triangle_top,
+        triangle_middle,
+        triangle_bottom,
+        color_scheme.text
+    )
+}
+
+fn line_width_with_remaining_dropdowns(
+    content: &str,
+    text_scale: &Scale,
+    drop_scale: &Scale,
+    remaining_dropdowns: &mut usize,
+) -> f32 {
+    content
+        .splitn(3, VARIABLE_MARKER)
+        .enumerate()
+        .map(|(index, element)| match index {
+            0 => line_segment_width_with_remaining_dropdowns(
+                element,
+                text_scale,
+                drop_scale,
+                remaining_dropdowns,
+            ),
+            1 => advance(element, text_scale),
+            _ => line_width_with_remaining_dropdowns(element, text_scale, drop_scale, remaining_dropdowns),
+        })
+        .sum()
 }
 
 #[derive(Clone, PartialEq)]

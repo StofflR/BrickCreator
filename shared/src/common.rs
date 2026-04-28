@@ -76,17 +76,27 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
 
         // Get brick dimensions for offset calculation
         let (brick_width, brick_height) = self.get_dimensions();
-        let offset_x = offset.0 * brick_width as f32;
+        // Keep the first line clear of the decorative riffle on the left edge.
+        let offset_x = (CONTENT_START_X_RATIO + offset.0) * brick_width as f32;
+        let line_width = brick_width as f32
+            - offset_x
+            - CONTENT_END_PADDING_RATIO * brick_width as f32;
         let offset_y = offset.1 * brick_height as f32;
         let lines: Vec<String> = content.split('\n').map(str::to_string).collect();
 
         let svg_lines = lines.iter().enumerate().map(|(index, line)| {
             let line_content = parse_line(line, self);
+            let line_triangle = if line_has_dropdown(line) {
+                render_line_dropdown_triangle(&self.color_scheme, &scale, line_width)
+            } else {
+                String::new()
+            };
             format!(
-                "<g transform=\"translate({} {})\">{}</g>",
+                "<g transform=\"translate({} {})\">{}{}</g>",
                 offset_x,
                 index as f32 * cap_height * 1.1 + 20.0 + offset_y,
-                line_content
+                line_content,
+                line_triangle
             )
         });
         svg_lines.collect()
