@@ -4232,3 +4232,31 @@
     }
   }
 }
+
+@media (max-width: 900px) {
+  .brick-type-mobile-grid {
+    display: grid;
+    width: 100%;
+    height: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(40px, auto));
+    gap: 0.5rem;
+    align-items: stretch;
+    align-content: stretch;
+    overflow: visible;
+  }
+
+  .brick-type-mobile-card {
+    min-width: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    min-height: 40px !important;
+    padding: 0.125rem 0.25rem !important;
+  }
+
+  .brick-type-mobile-card-title {
+    margin-bottom: 0 !important;
+    font-size: 8px !important;
+    line-height: 1.1 !important;
+  }
+}

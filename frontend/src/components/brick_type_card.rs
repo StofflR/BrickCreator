@@ -39,6 +39,8 @@ pub fn brick_type_card(props: &BrickTypeCardProps) -> Html {
     html! {
         <Card
             title={props.brick_type.label}
+            class={style::BRICK_TYPE_CARD_CLASS}
+            title_class={style::BRICK_TYPE_CARD_TITLE_CLASS}
             selectable={true}
             selected={props.selected}
             onclick={on_click}
