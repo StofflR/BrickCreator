@@ -46,6 +46,7 @@ pub fn card(props: &CardProps) -> Html {
     html! {
         <div
             class={card_class}
+            title={props.title.clone()}
             onclick={props.onclick.clone()}
             ondblclick={props.ondblclick.clone()}
         >

@@ -23,9 +23,11 @@ fn group_key_from_path(path: &str) -> &str {
 }
 
 #[cfg(target_arch = "wasm32")]
-fn label_from_path(path: &str) -> &str {
+fn label_from_path(path: &str) -> String {
     let file = path.rsplit_once('/').map(|(_, f)| f).unwrap_or(path);
-    file.strip_suffix(".json").unwrap_or(file)
+    file.strip_suffix(".json")
+        .unwrap_or(file)
+        .replace('_', " ")
 }
 
 #[cfg(target_arch = "wasm32")]
