@@ -78,6 +78,12 @@ impl Default for CustomColorDraft {
 }
 
 #[cfg(target_arch = "wasm32")]
+#[derive(Clone, PartialEq)]
+struct CustomColorEditState {
+    original_name: String,
+}
+
+#[cfg(target_arch = "wasm32")]
 impl CustomColorDraft {
     fn to_scheme(&self) -> ColorScheme {
         ColorScheme {
@@ -97,6 +103,7 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
     let saved_custom_colors = use_state(load_saved_custom_colors);
     let modal_open = use_state(|| false);
     let draft = use_state(CustomColorDraft::default);
+    let editing_color = use_state(|| Option::<CustomColorEditState>::None);
     let error_message = use_state(|| Option::<String>::None);
     let context_menu = use_state(|| Option::<(String, i32, i32)>::None);
 
@@ -110,10 +117,12 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
     let open_modal = {
         let modal_open = modal_open.clone();
         let draft = draft.clone();
+        let editing_color = editing_color.clone();
         let error_message = error_message.clone();
         let context_menu = context_menu.clone();
         Callback::from(move |_| {
             draft.set(CustomColorDraft::default());
+            editing_color.set(None);
             error_message.set(None);
             context_menu.set(None);
             modal_open.set(true);
@@ -122,9 +131,11 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
 
     let close_modal = {
         let modal_open = modal_open.clone();
+        let editing_color = editing_color.clone();
         let error_message = error_message.clone();
         let context_menu = context_menu.clone();
         Callback::from(move |_| {
+            editing_color.set(None);
             error_message.set(None);
             context_menu.set(None);
             modal_open.set(false);
@@ -173,6 +184,7 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
         let model = model.clone();
         let saved_custom_colors = saved_custom_colors.clone();
         let draft = draft.clone();
+        let editing_color = editing_color.clone();
         let error_message = error_message.clone();
         let modal_open = modal_open.clone();
         let context_menu = context_menu.clone();
@@ -185,21 +197,61 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
             }
 
             let mut next_model = (*model).clone();
-            if !next_model.add_custom_color(new_color.clone()) {
-                error_message.set(Some(
-                    "That color name already exists. Pick a unique name.".to_string(),
-                ));
-                return;
+            let mut next_saved = (*saved_custom_colors).clone();
+
+            if let Some(editing) = &*editing_color {
+                if !next_model.replace_custom_color(&editing.original_name, new_color.clone()) {
+                    error_message.set(Some(
+                        "That color name already exists. Pick a unique name.".to_string(),
+                    ));
+                    return;
+                }
+
+                let mut updated_saved = false;
+                let was_saved = next_saved
+                    .iter()
+                    .any(|entry| entry.name == editing.original_name);
+
+                if draft.save_for_later || was_saved {
+                    for saved in &mut next_saved {
+                        if saved.name == editing.original_name {
+                            *saved = new_color.clone();
+                            updated_saved = true;
+                        }
+                    }
+                }
+
+                if !draft.save_for_later {
+                    let before = next_saved.len();
+                    next_saved.retain(|entry| entry.name != editing.original_name);
+                    updated_saved |= next_saved.len() != before;
+                } else if !updated_saved {
+                    next_saved.push(new_color.clone());
+                    updated_saved = true;
+                }
+
+                if updated_saved {
+                    persist_saved_custom_colors(&next_saved);
+                    saved_custom_colors.set(next_saved);
+                }
+            } else {
+                if !next_model.add_custom_color(new_color.clone()) {
+                    error_message.set(Some(
+                        "That color name already exists. Pick a unique name.".to_string(),
+                    ));
+                    return;
+                }
+
+                if draft.save_for_later {
+                    next_saved.push(new_color.clone());
+                    persist_saved_custom_colors(&next_saved);
+                    saved_custom_colors.set(next_saved);
+                }
             }
 
             on_select.emit(new_color.clone());
-            if draft.save_for_later {
-                let mut next_saved = (*saved_custom_colors).clone();
-                next_saved.push(new_color.clone());
-                persist_saved_custom_colors(&next_saved);
-                saved_custom_colors.set(next_saved);
-            }
             model.set(next_model);
+            editing_color.set(None);
             error_message.set(None);
             context_menu.set(None);
             modal_open.set(false);
@@ -249,10 +301,64 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
         })
     };
 
+    let on_edit_custom = {
+        let model = model.clone();
+        let saved_custom_colors = saved_custom_colors.clone();
+        let draft = draft.clone();
+        let editing_color = editing_color.clone();
+        let error_message = error_message.clone();
+        let modal_open = modal_open.clone();
+        let context_menu = context_menu.clone();
+        Callback::from(move |e: MouseEvent| {
+            e.prevent_default();
+            let Some((name, _, _)) = (*context_menu).clone() else {
+                return;
+            };
+            let Some(color) = model
+                .custom_colors()
+                .iter()
+                .find(|entry| entry.name == name)
+                .cloned()
+            else {
+                context_menu.set(None);
+                return;
+            };
+
+            let is_saved = saved_custom_colors.iter().any(|entry| entry.name == name);
+            draft.set(CustomColorDraft {
+                name: color.name.clone(),
+                color: color.color,
+                shade: color.shade,
+                border: color.border,
+                text: color.text,
+                save_for_later: is_saved,
+            });
+            editing_color.set(Some(CustomColorEditState {
+                original_name: name,
+            }));
+            error_message.set(None);
+            context_menu.set(None);
+            modal_open.set(true);
+        })
+    };
+
     let keep_menu_open = Callback::from(move |e: MouseEvent| {
         e.prevent_default();
         e.stop_propagation();
     });
+
+    let is_editing = editing_color.is_some();
+    let modal_title = if is_editing {
+        "Edit Custom Color"
+    } else {
+        "Create Custom Color"
+    };
+    let modal_hint = if is_editing {
+        "Update this custom color for the current session, and optionally keep the changes saved on this device."
+    } else {
+        "Add a reusable color scheme for this session or save it for later on this device."
+    };
+    let save_button_label = if is_editing { "Save changes" } else { "Save color" };
 
     html! {
         <EditorGroup
@@ -278,6 +384,13 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
                         <button
                             class={style::CONTENT_GROUP_CONTEXT_ITEM}
                             type="button"
+                            onmousedown={on_edit_custom}
+                        >
+                            {"Edit"}
+                        </button>
+                        <button
+                            class={style::CONTENT_GROUP_CONTEXT_ITEM}
+                            type="button"
                             onmousedown={on_delete_custom}
                         >
                             {"Delete"}
@@ -287,8 +400,8 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
             </div>
             if *modal_open {
                 <Modal
-                    title="Create Custom Color"
-                    hint="Add a reusable color scheme for this session or save it for later on this device."
+                    title={modal_title}
+                    hint={modal_hint}
                     class={style::COLOR_MODAL_ROOT}
                     body_class={style::COLOR_MODAL_BODY}
                     on_close={close_modal.clone()}
@@ -388,7 +501,7 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
                                     type="button"
                                     onclick={on_save}
                                 >
-                                    {"Save color"}
+                                    {save_button_label}
                                 </button>
                             </div>
                         </div>
