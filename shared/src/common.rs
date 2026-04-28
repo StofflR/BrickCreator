@@ -78,11 +78,7 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
         let (brick_width, brick_height) = self.get_dimensions();
         let offset_x = offset.0 * brick_width as f32;
         let offset_y = offset.1 * brick_height as f32;
-        let available_width = (brick_width as f32 - offset_x * 2.0).max(0.0);
-        let lines: Vec<String> = content
-            .split('\n')
-            .flat_map(|line| wrap_content_line(line, self, available_width))
-            .collect();
+        let lines: Vec<String> = content.split('\n').map(str::to_string).collect();
 
         let svg_lines = lines.iter().enumerate().map(|(index, line)| {
             let line_content = parse_line(line, self);
@@ -94,75 +90,5 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
             )
         });
         svg_lines.collect()
-    }
-}
-
-fn wrap_content_line(content: &str, brick: &BaseBrick, max_width: f32) -> Vec<String> {
-    if content.is_empty() || max_width <= 0.0 {
-        return vec![content.to_string()];
-    }
-
-    if content_width(content, brick) <= max_width {
-        return vec![content.to_string()];
-    }
-
-    let mut lines = Vec::new();
-    let mut start = 0;
-
-    while start < content.len() {
-        let remaining = &content[start..];
-        if content_width(remaining, brick) <= max_width {
-            lines.push(remaining.to_string());
-            break;
-        }
-
-        let mut last_whitespace_break = None;
-        let mut previous_end = start;
-        let mut chosen_end = None;
-
-        for (index, ch) in remaining.char_indices() {
-            let end = start + index + ch.len_utf8();
-            let candidate = &content[start..end];
-            if ch.is_whitespace() {
-                last_whitespace_break = Some(end);
-            }
-            if content_width(candidate, brick) > max_width {
-                chosen_end = last_whitespace_break.or(Some(previous_end.max(start + ch.len_utf8())));
-                break;
-            }
-            previous_end = end;
-        }
-
-        let mut end = chosen_end.unwrap_or(content.len());
-        if end <= start {
-            end = content[start..]
-                .char_indices()
-                .nth(1)
-                .map(|(index, _)| start + index)
-                .unwrap_or(content.len());
-        }
-
-        let line = content[start..end].trim_end();
-        if !line.is_empty() {
-            lines.push(line.to_string());
-        }
-
-        start = end;
-        while start < content.len() {
-            let next = &content[start..];
-            let Some(ch) = next.chars().next() else {
-                break;
-            };
-            if !ch.is_whitespace() {
-                break;
-            }
-            start += ch.len_utf8();
-        }
-    }
-
-    if lines.is_empty() {
-        vec![content.to_string()]
-    } else {
-        lines
     }
 }

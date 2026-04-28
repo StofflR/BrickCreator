@@ -2,7 +2,7 @@ use rusttype::Scale;
 use serde::de::Error;
 use serde::{Deserialize, Deserializer};
 
-use crate::brick::base::BaseBrick;
+use crate::brick::base::{BaseBrick, normalize_legacy_x_offset};
 use crate::brick::h0::BrickH0;
 use crate::brick::h1_base::BrickH1Base;
 use crate::brick::h1_control::BrickH1Control;
@@ -56,7 +56,7 @@ where
             border: data.color_scheme.2,
             text: data.color_scheme.3,
         }, // Convert tuple to ColorScheme
-        offset: data.offset,
+        offset: (normalize_legacy_x_offset(data.offset.0), data.offset.1),
         scale: Scale {
             x: data.scale.0,
             y: data.scale.1,
@@ -164,7 +164,7 @@ impl<'de> Deserialize<'de> for Box<dyn BrickRenderable> {
                 border: data.color_scheme.2,
                 text: data.color_scheme.3,
             },
-            offset: data.offset,
+            offset: (normalize_legacy_x_offset(data.offset.0), data.offset.1),
             scale: Scale {
                 x: data.scale.0,
                 y: data.scale.1,

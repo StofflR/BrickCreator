@@ -1,5 +1,6 @@
 use std::rc::Rc;
 
+use shared::brick::base::normalize_legacy_x_offset;
 use shared::brick::h0::BrickH0;
 use shared::brick::h1_base::BrickH1Base;
 use shared::brick::h1_control::BrickH1Control;
@@ -47,11 +48,13 @@ impl Reducible for BrickState {
             StateAction::ChangeType(new_type) => {
                 let mut new_state = (*self).clone();
                 new_state.change_type(new_type);
+                new_state.normalize_offset_x();
                 Rc::new(new_state)
             }
             StateAction::ChangeColor(new_color) => {
                 let mut new_state = (*self).clone();
                 new_state.as_mut_brick().color_scheme = new_color;
+                new_state.normalize_offset_x();
                 Rc::new(new_state)
             }
             StateAction::ChangeOffset(x, y) => {
@@ -62,6 +65,7 @@ impl Reducible for BrickState {
             StateAction::ChangeContent(new_content) => {
                 let mut new_state = (*self).clone();
                 new_state.as_mut_brick().content = new_content;
+                new_state.normalize_offset_x();
                 Rc::new(new_state)
             }
             StateAction::LoadJson(text) => match BrickState::from_json(&text) {
@@ -85,6 +89,12 @@ impl std::fmt::Display for BrickState {
 }
 
 impl BrickState {
+    fn normalize_offset_x(&mut self) {
+        let current_y = self.as_brick().offset.1;
+        let next_x = normalize_legacy_x_offset(self.as_brick().offset.0);
+        self.as_mut_brick().offset = (next_x, current_y);
+    }
+
     pub fn from_brick(brick: &dyn BrickRenderable) -> Self {
         let base = brick.deref().clone();
         match brick.get_type() {

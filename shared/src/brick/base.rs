@@ -5,7 +5,8 @@ use rusttype::{Font, Scale, point};
 pub const VARIABLE_MARKER: &str = "*";
 pub const DROP_MARKER: &str = "_";
 const DROP_SCALE: f32 = 0.8;
-pub const DEFAULT_X_OFFSET: f32 = 0.11;
+const LEGACY_DEFAULT_X_OFFSET: f32 = 0.11;
+pub const DEFAULT_X_OFFSET: f32 = 0.0;
 pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
 
 // escaping: ensure that the symbol in the brick is read as text
@@ -34,6 +35,14 @@ fn svg_text_scale(font_size: f32) -> Scale {
     Scale {
         x: font_size,
         y: font_size,
+    }
+}
+
+pub fn normalize_legacy_x_offset(offset_x: f32) -> f32 {
+    if (offset_x - LEGACY_DEFAULT_X_OFFSET).abs() < 0.001 {
+        DEFAULT_X_OFFSET
+    } else {
+        offset_x
     }
 }
 
@@ -135,17 +144,48 @@ fn line_segment_width(content: &str, text_scale: &Scale, drop_scale: &Scale) -> 
         .enumerate()
         .map(|(index, element)| match index {
             0 => advance(element, text_scale),
-            1 => advance(element, drop_scale),
+            1 => dropdown_width(element, drop_scale.y),
             _ => line_segment_width(element, text_scale, drop_scale),
         })
         .sum()
 }
+
+fn dropdown_triangle_width(font_size: f32) -> f32 {
+    font_size * 0.6
+}
+
+fn dropdown_triangle_gap(font_size: f32) -> f32 {
+    font_size * 0.25
+}
+
+fn dropdown_width(content: &str, font_size: f32) -> f32 {
+    advance(content, &svg_text_scale(font_size))
+        + dropdown_triangle_gap(font_size)
+        + dropdown_triangle_width(font_size)
+}
+
 fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32) -> String {
     let text_width = advance(content, &svg_text_scale(font_size));
+    let triangle_gap = dropdown_triangle_gap(font_size);
+    let triangle_width = dropdown_triangle_width(font_size);
+    let triangle_left = text_width + triangle_gap;
+    let triangle_top = -font_size * 0.36;
+    let triangle_bottom = font_size * 0.02;
+    let triangle_middle = triangle_left + triangle_width / 2.0;
     let content = escape_xml_text(content);
     format!(
-        "<text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text>",
-        text_width.max(0.0), color_scheme.text, font_size, content
+        "<g><text xml:space=\"preserve\" textLength=\"{}\" lengthAdjust=\"spacingAndGlyphs\" style=\"fill:{};font-size:{}px;font-family:'Roboto',sans-serif;font-weight:bold;\">{}</text><path d=\"M {} {} L {} {} L {} {} Z\" fill=\"{}\"/></g>",
+        text_width.max(0.0),
+        color_scheme.text,
+        font_size,
+        content,
+        triangle_left,
+        triangle_top,
+        triangle_left + triangle_width,
+        triangle_top,
+        triangle_middle,
+        triangle_bottom,
+        color_scheme.text
     )
 }
 
@@ -154,7 +194,6 @@ fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
     let font_size = font_size_from_scale(&brick.scale);
     let text_scale = svg_text_scale(font_size);
     let drop_font_size = font_size * DROP_SCALE;
-    let drop_scale = svg_text_scale(drop_font_size);
     segments
         .enumerate()
         .map(|(index, element)| match index {
@@ -166,7 +205,7 @@ fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
                 )
             }
             1 => {
-                let width = advance(element, &drop_scale);
+                let width = dropdown_width(element, drop_font_size);
                 (
                     handle_drop(element, &brick.color_scheme, drop_font_size),
                     width,
@@ -208,7 +247,10 @@ pub fn parse_line(content: &str, brick: &BaseBrick) -> String {
         .enumerate()
         .map(|(index, element)| {
             match index {
-                0 => (handle_line_segment(element, brick), advance(element, &text_scale)),
+                0 => (
+                    handle_line_segment(element, brick),
+                    line_segment_width(element, &text_scale, &svg_text_scale(font_size * DROP_SCALE)),
+                ),
                 1 => (handle_variable(element, brick), advance(element, &text_scale)),
                 _ => (parse_line(element, brick), 0.0),
             }
