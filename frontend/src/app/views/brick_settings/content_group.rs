@@ -26,11 +26,6 @@ pub fn content_group(props: &ContentGroupProps) -> Html {
     let selection = use_state(|| (0_u32, 0_u32));
     let context_menu = use_state(|| Option::<(i32, i32)>::None);
 
-    let close_context_menu = {
-        let context_menu = context_menu.clone();
-        Callback::from(move |_: ()| context_menu.set(None))
-    };
-
     let close_context_menu_click = {
         let context_menu = context_menu.clone();
         Callback::from(move |_e: MouseEvent| context_menu.set(None))

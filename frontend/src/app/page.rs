@@ -7,6 +7,8 @@ use crate::components::sidebar::Sidebar;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
+use crate::components::modal::Modal;
+#[cfg(target_arch = "wasm32")]
 use crate::style;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
@@ -47,6 +49,24 @@ const ICON_UNDO: &str = include_str!("../res/undo.svg");
 const ICON_REDO: &str = include_str!("../res/redo.svg");
 #[cfg(target_arch = "wasm32")]
 const ICON_HELP: &str = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" width=\"18px\" height=\"18px\" fill=\"currentColor\"><path d=\"M9 21h6v-1H9zm3-20a7 7 0 0 0-4 12.75V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3.25A7 7 0 0 0 12 1zm2.4 11.55-.4.3V15h-4v-1.5c0-1.2.58-2.32 1.55-3l.55-.4a1.97 1.97 0 0 0 .9-1.67A2.05 2.05 0 0 0 10.5 6.5 2.07 2.07 0 0 0 8.5 8H7a3.5 3.5 0 0 1 7 0c0 1.17-.57 2.28-1.6 2.98z\"/></svg>";
+#[cfg(target_arch = "wasm32")]
+const ICON_ABOUT: &str = include_str!("../res/about.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_ADD_BRICK: &str = include_str!("../res/addBrick.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_DELETE: &str = include_str!("../res/delete.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_EDIT: &str = include_str!("../res/edit.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_PREVIEW: &str = include_str!("../res/preview.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_EDIT_SQUARE: &str = include_str!("../res/editsquare.svg");
+#[cfg(target_arch = "wasm32")]
+const ICON_BRICK_CATALOG: &str = include_str!("../res/brickcatalog.svg");
+#[cfg(target_arch = "wasm32")]
+const HELP_DOCS_URL: &str = "https://catrobat.org/docs/brickdocumentation/";
+#[cfg(target_arch = "wasm32")]
+const HELP_CONTACT_URL: &str = "https://developer.catrobat.org/pages/legal/imprint/";
 
 #[cfg(target_arch = "wasm32")]
 const SUN_ICON: &str = include_str!("../res/sun.svg");
@@ -168,6 +188,8 @@ fn app() -> Html {
     let ninepatch_url = use_state(|| Option::<String>::None);
     let ninepatch_rendering = use_state(|| false);
     let menu_open = use_state(|| false);
+    let help_submenu_open = use_state(|| false);
+    let explanation_modal_open = use_state(|| false);
     let history = use_state(|| vec![AppSnapshot::default()]);
     let history_index = use_state(|| 0usize);
     let restoring_history = use_mut_ref(|| 0usize);
@@ -521,12 +543,23 @@ fn app() -> Html {
 
     let on_menu = {
         let menu_open = menu_open.clone();
-        Callback::from(move |_: MouseEvent| menu_open.set(!*menu_open))
+        let help_submenu_open = help_submenu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            let next_open = !*menu_open;
+            menu_open.set(next_open);
+            if !next_open {
+                help_submenu_open.set(false);
+            }
+        })
     };
 
     let on_menu_mouse_leave = {
         let menu_open = menu_open.clone();
-        Callback::from(move |_: MouseEvent| menu_open.set(false))
+        let help_submenu_open = help_submenu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            menu_open.set(false);
+            help_submenu_open.set(false);
+        })
     };
 
     let on_undo = {
@@ -577,14 +610,48 @@ fn app() -> Html {
     };
 
     let on_help = {
+        let help_submenu_open = help_submenu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            help_submenu_open.set(!*help_submenu_open);
+        })
+    };
+
+    let on_help_link_click = {
         let menu_open = menu_open.clone();
+        let help_submenu_open = help_submenu_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            menu_open.set(false);
+            help_submenu_open.set(false);
+        })
+    };
+
+    let on_open_explanation = {
+        let menu_open = menu_open.clone();
+        let help_submenu_open = help_submenu_open.clone();
+        let explanation_modal_open = explanation_modal_open.clone();
+        Callback::from(move |_: MouseEvent| {
+            menu_open.set(false);
+            help_submenu_open.set(false);
+            explanation_modal_open.set(true);
+        })
+    };
+
+    let on_close_explanation = {
+        let explanation_modal_open = explanation_modal_open.clone();
+        Callback::from(move |_: MouseEvent| explanation_modal_open.set(false))
+    };
+
+    let on_about = {
+        let menu_open = menu_open.clone();
+        let help_submenu_open = help_submenu_open.clone();
         Callback::from(move |_: MouseEvent| {
             if let Some(window) = web_sys::window() {
                 let _ = window.alert_with_message(
-                    "Tip: pick a color, choose a brick type, edit the content, and use the sidebar to manage the tutorial. Undo and redo are available from this menu.",
+                    "About BrickCreator\n\nBrickCreator is a website built by and for Catrobat Pocket Code users, especially educators who teach Pocket Code.\n\nIt allows users to create PNG, SVG, and JSON files that can be directly used in presentations, teaching materials, and tutorials.\n\nCatrobat is an open-source platform with contributors from all over the world. For more information, visit: https://catrobat.org/about",
                 );
             }
             menu_open.set(false);
+            help_submenu_open.set(false);
         })
     };
 
@@ -630,15 +697,57 @@ fn app() -> Html {
                                 </span>
                                 <span>{"Redo"}</span>
                             </button>
+                            <div class="toolbar-menu__submenu-wrap">
+                                <button
+                                    class={classes!("toolbar-menu__item", "toolbar-menu__item--submenu-toggle", (*help_submenu_open).then_some("toolbar-menu__item--active"))}
+                                    type="button"
+                                    onclick={on_help.clone()}
+                                >
+                                    <span class="toolbar-menu__icon" aria-hidden="true">
+                                        {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
+                                    </span>
+                                    <span>{"Help"}</span>
+                                    <span class="toolbar-menu__caret" aria-hidden="true">{"›"}</span>
+                                </button>
+                                if *help_submenu_open {
+                                    <div class="toolbar-submenu">
+                                        <button
+                                            class="toolbar-submenu__item"
+                                            type="button"
+                                            onclick={on_open_explanation.clone()}
+                                        >
+                                            {"Icon Explanation"}
+                                        </button>
+                                        <a
+                                            class="toolbar-submenu__item"
+                                            href={HELP_CONTACT_URL}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onclick={on_help_link_click.clone()}
+                                        >
+                                            {"Contact information"}
+                                        </a>
+                                        <a
+                                            class="toolbar-submenu__item"
+                                            href={HELP_DOCS_URL}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onclick={on_help_link_click.clone()}
+                                        >
+                                            {"Brick Documentation"}
+                                        </a>
+                                    </div>
+                                }
+                            </div>
                             <button
                                 class={style::TOOLBAR_MENU_ITEM}
                                 type="button"
-                                onclick={on_help.clone()}
+                                onclick={on_about.clone()}
                             >
                                 <span class={style::TOOLBAR_MENU_ICON} aria-hidden="true">
-                                    {Html::from_html_unchecked(AttrValue::from(ICON_HELP))}
+                                    {Html::from_html_unchecked(themed_menu_icon(ICON_ABOUT))}
                                 </span>
-                                <span>{"Help"}</span>
+                                <span>{"About"}</span>
                             </button>
                         </div>
                     }
@@ -707,6 +816,129 @@ fn app() -> Html {
                     />
                 </Sidebar>
             </div>
+            if *explanation_modal_open {
+                <Modal
+                    title="Icon Explanation"
+                    hint="What each toolbar icon does"
+                    class={classes!("explanation-modal")}
+                    on_close={on_close_explanation.clone()}
+                >
+                    <div class="explanation-modal__list">
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(ICON_MENU))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Open the main menu, where you can access undo, redo, Help, and About."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(SUN_ICON))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Switch to light mode."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(MOON_ICON))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Switch to dark mode."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(themed_menu_icon(ICON_ADD_BRICK))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Add the current brick from the brick editor to the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(themed_menu_icon(ICON_DELETE))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Delete the selected brick from the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(themed_menu_icon(ICON_EDIT))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Apply the current changes from the brick editor to the selected brick in the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(ICON_PREVIEW))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Show a preview of the rendered bricks in the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(themed_menu_icon(ICON_EDIT_SQUARE))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Return from preview mode to the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(ICON_BRICK_CATALOG))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Open the brick catalog. Double-click a prebuilt brick to add it to the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon explanation-modal__icon--text">
+                                {"↑ ↓"}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Move the selected brick up or down in the tutorial editor."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(ICON_UPLOAD))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Import a JSON file containing either a single brick or a full tutorial."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(AttrValue::from(ICON_DOWNLOAD))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Choose which bricks to export and select the output format. Use Select All, Clear Selection, and Done to finish. The checkboxes to the left of the tutorial editor show which bricks are selected."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon">
+                                {Html::from_html_unchecked(themed_menu_icon(ICON_EXPORT_ALL_BRICKS))}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Download a ZIP file containing all bricks from the catalog."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon explanation-modal__icon--text">
+                                {"9"}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Download the 9-patch ZIP file."}
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+            }
         </div>
     }
 }
