@@ -367,14 +367,16 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
             content_class={style::BRICK_SETTINGS_EDITOR_GROUP_CONTENT}
         >
             <div class={style::COLOR_VIEW_SHELL} onclick={close_context_menu}>
-                <ColorView
-                    colors={colors}
-                    custom_color_names={custom_color_names}
-                    selected_name={props.selected_name.clone()}
-                    on_select={props.on_select.clone()}
-                    on_add_custom={open_modal}
-                    on_custom_context_menu={on_custom_context_menu}
-                />
+                <div class={style::COLOR_VIEW_SCROLL_WRAP}>
+                    <ColorView
+                        colors={colors}
+                        custom_color_names={custom_color_names}
+                        selected_name={props.selected_name.clone()}
+                        on_select={props.on_select.clone()}
+                        on_add_custom={open_modal}
+                        on_custom_context_menu={on_custom_context_menu}
+                    />
+                </div>
                 if let Some((_, x, y)) = &*context_menu {
                     <div
                         class={style::CONTENT_GROUP_CONTEXT_MENU}

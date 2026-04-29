@@ -124,7 +124,8 @@ pub const TUTORIAL_SETTINGS_ACTIONS: &str = "flex flex-row flex-wrap gap-1.5";
 
 pub const BRICK_SETTINGS_EDITOR_GROUP_CLASS: &str = "w-full";
 pub const BRICK_SETTINGS_EDITOR_GROUP_CONTENT: &str = "min-h-0 flex-1 overflow-y-auto";
-pub const BRICK_TYPES_SCROLL_WRAP: &str = "min-h-0 h-full overflow-y-auto";
+pub const BRICK_TYPES_SCROLL_WRAP: &str =
+    "min-h-0 h-full overflow-y-auto max-[900px]:overflow-x-auto max-[900px]:overflow-y-hidden max-[900px]:pb-1";
 pub const CONTENT_GROUP_CLASS: &str = "flex-none overflow-hidden";
 pub const CONTENT_GROUP_CONTENT_CLASS: &str = "flex-none overflow-hidden max-[900px]:items-stretch";
 pub const CONTENT_GROUP_SHELL: &str = "relative flex min-w-0 flex-1 w-full";
@@ -139,8 +140,10 @@ pub const BRICK_SETTINGS_ROW: &str =
     "flex min-h-0 flex-1 gap-app-gap overflow-hidden max-[900px]:flex-col";
 pub const BRICK_SETTINGS_COLUMN: &str = "flex min-h-0 min-w-0 flex-1 overflow-hidden";
 
+pub const COLOR_VIEW_SCROLL_WRAP: &str =
+    "max-[900px]:overflow-x-auto max-[900px]:overflow-y-hidden max-[900px]:pb-1";
 pub const COLOR_VIEW_GRID: &str =
-    "flex flex-wrap gap-1.5 max-[900px]:h-auto max-[900px]:items-center max-[900px]:gap-2 max-[900px]:overflow-visible";
+    "flex flex-wrap gap-1.5 max-[900px]:h-auto max-[900px]:w-max max-[900px]:flex-nowrap max-[900px]:items-center max-[900px]:gap-2";
 pub const COLOR_VIEW_SHELL: &str = "relative";
 pub const COLOR_ADD_BUTTON: &str =
     "flex h-16 w-[90px] shrink-0 flex-col items-center justify-center gap-1 rounded-[var(--app-radius)] border border-dashed border-app-border bg-app-surface-raised px-[10px] py-2 text-app-text transition-colors hover:border-app-accent hover:bg-app-surface max-[900px]:h-[30px] max-[900px]:w-[30px] max-[900px]:min-h-[30px] max-[900px]:min-w-[30px] max-[900px]:rounded-full max-[900px]:border-2 max-[900px]:p-0";
@@ -191,7 +194,7 @@ pub const COLOR_MODAL_BUTTON: &str =
 pub const COLOR_MODAL_BUTTON_PRIMARY: &str =
     "border-app-accent bg-app-accent text-white hover:bg-[color-mix(in_srgb,var(--app-accent)_85%,black)]";
 pub const BRICK_TYPE_VIEW_GRID: &str =
-    "flex flex-wrap gap-2 brick-type-mobile-grid";
+    "flex flex-wrap gap-2 brick-type-mobile-grid max-[900px]:w-max max-[900px]:flex-nowrap";
 
 pub const TUTORIAL_PREVIEW_WRAP: &str = "min-h-0 flex-1 overflow-y-auto";
 pub const TUTORIAL_PREVIEW_IMAGE: &str = "block h-auto w-full rounded-[var(--app-radius)]";
