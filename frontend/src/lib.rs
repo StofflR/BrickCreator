@@ -7,5 +7,5 @@ pub mod style;
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen(start)]
 pub fn start() {
-    app::page::mount_app();
+    app::app::mount_app();
 }

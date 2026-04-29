@@ -1,4 +1,6 @@
 #[cfg(target_arch = "wasm32")]
+pub use crate::components::drag_drop::drag_drop_item::{DragDropItem, DragDropItemProps};
+#[cfg(target_arch = "wasm32")]
 use crate::style;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
@@ -18,18 +20,6 @@ pub struct DragDropListProps {
     pub item_class: AttrValue,
     #[prop_or(AttrValue::Static(style::DRAG_DROP_LIST_ITEM_SELECTED))]
     pub item_selected_class: AttrValue,
-}
-
-#[cfg(target_arch = "wasm32")]
-#[derive(Properties, PartialEq, Clone)]
-pub struct DragDropItemProps {
-    pub children: Html,
-}
-
-#[cfg(target_arch = "wasm32")]
-#[function_component(DragDropItem)]
-pub fn drag_drop_item(props: &DragDropItemProps) -> Html {
-    props.children.clone()
 }
 
 #[cfg(target_arch = "wasm32")]

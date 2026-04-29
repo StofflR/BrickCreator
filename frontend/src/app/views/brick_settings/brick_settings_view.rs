@@ -1,0 +1,80 @@
+#[cfg(target_arch = "wasm32")]
+use super::colors_group::ColorsGroup;
+#[cfg(target_arch = "wasm32")]
+use super::content_group::ContentGroup;
+#[cfg(target_arch = "wasm32")]
+use super::types_group::TypesGroup;
+#[cfg(target_arch = "wasm32")]
+use crate::interfaces::brick::{BrickState, StateAction};
+#[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
+use shared::color::ColorScheme;
+#[cfg(target_arch = "wasm32")]
+use shared::types::BrickType;
+#[cfg(target_arch = "wasm32")]
+use yew::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+#[derive(Properties, PartialEq)]
+pub struct BrickSettingsViewProps {
+    pub brick: BrickState,
+    pub dispatcher: UseReducerDispatcher<BrickState>,
+    pub on_add_to_tutorial: Callback<MouseEvent>,
+}
+
+#[cfg(target_arch = "wasm32")]
+#[function_component(BrickSettingsView)]
+pub fn brick_settings_view(props: &BrickSettingsViewProps) -> Html {
+    let on_content_input = {
+        let dispatcher = props.dispatcher.clone();
+        Callback::from(move |content: String| {
+            dispatcher.dispatch(StateAction::ChangeContent(content));
+        })
+    };
+
+    let on_brick_type_select = {
+        let dispatcher = props.dispatcher.clone();
+        Callback::from(move |brick_type: BrickType| {
+            dispatcher.dispatch(StateAction::ChangeType(brick_type));
+        })
+    };
+
+    let on_color_select = {
+        let dispatcher = props.dispatcher.clone();
+        Callback::from(move |color: ColorScheme| {
+            dispatcher.dispatch(StateAction::ChangeColor(color));
+        })
+    };
+
+    let current = props.brick.as_brick();
+    let content_val = current.content.clone();
+    let brick_type = props.brick.get_type();
+    let color_name = current.color_scheme.name.clone();
+    let selected_color = current.color_scheme.clone();
+
+    html! {
+        <div class={style::BRICK_SETTINGS_ROOT}>
+            <ContentGroup
+                content={content_val}
+                on_content_input={on_content_input}
+                on_add_to_tutorial={props.on_add_to_tutorial.clone()}
+            />
+            <div class={style::BRICK_SETTINGS_ROW}>
+                <div class={style::BRICK_SETTINGS_COLUMN}>
+                    <ColorsGroup
+                        selected_name={color_name}
+                        on_select={on_color_select}
+                    />
+                </div>
+                <div class={style::BRICK_SETTINGS_COLUMN}>
+                    <TypesGroup
+                        selected={brick_type}
+                        color_scheme={selected_color}
+                        on_select={on_brick_type_select}
+                    />
+                </div>
+            </div>
+        </div>
+    }
+}

@@ -1,19 +1,19 @@
 #[cfg(target_arch = "wasm32")]
 use crate::app::views::brick_catalog_modal::BrickCatalogModal;
 #[cfg(target_arch = "wasm32")]
-use crate::app::views::tutorial::TutorialEditView;
+use crate::app::views::view::tutorial_edit_view::TutorialEditView;
 #[cfg(target_arch = "wasm32")]
-use crate::app::views::tutorial_preview::TutorialPreviewView;
+use crate::app::views::view::tutorial_preview_view::TutorialPreviewView;
 #[cfg(target_arch = "wasm32")]
-use crate::app::views::tutorial_settings::TutorialSettingsView;
+use crate::app::views::view::tutorial_settings_view::TutorialSettingsView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
-#[cfg(target_arch = "wasm32")]
-use crate::style;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::{BrickState, StateAction};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::tutorial::{TutorialAction, TutorialViewState};
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
@@ -96,10 +96,6 @@ pub fn tutorial_editor(props: &TutorialEditorProps) -> Html {
             dispatcher.dispatch(TutorialAction::MoveEntry(from, to));
         })
     };
-
-
-
-
 
     let has_selection = props.tutorial.selected_index.is_some();
     let selected_index = props.tutorial.selected_index;

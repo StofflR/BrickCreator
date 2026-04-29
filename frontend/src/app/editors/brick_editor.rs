@@ -1,7 +1,7 @@
 #[cfg(target_arch = "wasm32")]
-use crate::app::views::brick_preview::BrickPreviewView;
-#[cfg(target_arch = "wasm32")]
 use crate::app::views::brick_settings::BrickSettingsView;
+#[cfg(target_arch = "wasm32")]
+use crate::app::views::view::brick_preview_view::BrickPreviewView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
@@ -29,7 +29,6 @@ pub fn brick_editor(props: &BrickEditorProps) -> Html {
             dispatcher.dispatch(TutorialAction::AddBrick(brick.clone()));
         })
     };
-
 
     html! {
         <EditorGroup title="Brick Editor">

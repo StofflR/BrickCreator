@@ -1,20 +1,20 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-const ICON_DELETE: &str = include_str!("../../res/delete.svg");
+const ICON_DELETE: &str = include_str!("../../../res/delete.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_PREVIEW: &str = include_str!("../../res/preview.svg");
+const ICON_PREVIEW: &str = include_str!("../../../res/preview.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_EDIT: &str = include_str!("../../res/edit.svg");
+const ICON_EDIT: &str = include_str!("../../../res/edit.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_EDIT_SQUARE: &str = include_str!("../../res/editsquare.svg");
+const ICON_EDIT_SQUARE: &str = include_str!("../../../res/editsquare.svg");
 #[cfg(target_arch = "wasm32")]
-const ICON_BRICK_CATALOG: &str = include_str!("../../res/brickcatalog.svg");
+const ICON_BRICK_CATALOG: &str = include_str!("../../../res/brickcatalog.svg");
 
 #[cfg(target_arch = "wasm32")]
 fn themed_icon(svg: &str) -> AttrValue {
