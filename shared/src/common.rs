@@ -61,6 +61,34 @@ impl<T: SVGRenderable> Pixmap for T {
     }
 }
 
+fn split_content_lines(
+    content: &str,
+    brick: &BaseBrick,
+    max_width: f32,
+    dropdown_max_width: f32,
+) -> Vec<ContentLine> {
+    let mut lines = Vec::new();
+
+    for raw_line in content.split('\n') {
+        let line_width = if line_has_dropdown(raw_line) {
+            dropdown_max_width
+        } else {
+            max_width
+        };
+        lines.extend(
+            wrap_content_line(raw_line, brick, line_width)
+                .into_iter()
+                .map(ContentLine::Plain),
+        );
+    }
+
+    if lines.is_empty() {
+        vec![ContentLine::Plain(String::new())]
+    } else {
+        lines
+    }
+}
+
 pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
     fn get_type(&self) -> types::BrickType;
     fn get_dimensions(&self) -> (u32, u32);
@@ -79,18 +107,25 @@ pub trait Brick: Deref<Target = BaseBrick> + DerefMut + SVGRenderable + Pixmap {
         let offset_x = offset.0 * brick_width as f32;
         let offset_y = offset.1 * brick_height as f32;
         let available_width = (brick_width as f32 - offset_x * 2.0).max(0.0);
-        let lines: Vec<String> = content
-            .split('\n')
-            .flat_map(|line| wrap_content_line(line, self, available_width))
-            .collect();
+        let text_width = (available_width - dropdown_triangle_reserved_width(&scale)).max(0.0);
+        let lines = split_content_lines(content, self, available_width, text_width);
 
         let svg_lines = lines.iter().enumerate().map(|(index, line)| {
+            let line = match line {
+                ContentLine::Plain(line) => line,
+            };
             let line_content = parse_line(line, self);
+            let line_triangle = if line_has_dropdown(line) {
+                render_line_dropdown_triangle(&self.color_scheme, &scale, text_width)
+            } else {
+                String::new()
+            };
             format!(
-                "<g transform=\"translate({} {})\">{}</g>",
+                "<g transform=\"translate({} {})\">{}{}</g>",
                 offset_x,
-                index as f32 * cap_height * 1.1 + 20.0 + offset_y,
-                line_content
+                index as f32 * cap_height * 1.2 + 20.0 + offset_y,
+                line_content,
+                line_triangle
             )
         });
         svg_lines.collect()
@@ -127,7 +162,8 @@ fn wrap_content_line(content: &str, brick: &BaseBrick, max_width: f32) -> Vec<St
                 last_whitespace_break = Some(end);
             }
             if content_width(candidate, brick) > max_width {
-                chosen_end = last_whitespace_break.or(Some(previous_end.max(start + ch.len_utf8())));
+                chosen_end =
+                    last_whitespace_break.or(Some(previous_end.max(start + ch.len_utf8())));
                 break;
             }
             previous_end = end;

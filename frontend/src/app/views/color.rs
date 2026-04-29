@@ -1,7 +1,9 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
 use crate::components::color_card::ColorCard;
+#[cfg(target_arch = "wasm32")]
+use crate::interfaces::color::{BrickColorModel, ColorModel};
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use shared::color::ColorScheme;
 #[cfg(target_arch = "wasm32")]
