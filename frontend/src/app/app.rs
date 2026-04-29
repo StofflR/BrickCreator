@@ -1,15 +1,13 @@
 #[cfg(target_arch = "wasm32")]
-use crate::app::editors::brick::BrickEditor;
+use crate::app::editors::brick_editor::BrickEditor;
 #[cfg(target_arch = "wasm32")]
-use crate::app::editors::tutorial::TutorialEditor;
-#[cfg(target_arch = "wasm32")]
-use crate::components::sidebar::Sidebar;
+use crate::app::editors::tutorial_editor::TutorialEditor;
 #[cfg(target_arch = "wasm32")]
 use crate::components::icon_button::IconButton;
 #[cfg(target_arch = "wasm32")]
 use crate::components::modal::Modal;
 #[cfg(target_arch = "wasm32")]
-use crate::style;
+use crate::components::sidebar::Sidebar;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::brick::BrickState;
 #[cfg(target_arch = "wasm32")]
@@ -17,15 +15,21 @@ use crate::interfaces::catalog;
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::ninepatch;
 #[cfg(target_arch = "wasm32")]
-use crate::interfaces::tutorial::{tutorial_from_states, tutorial_png_bytes, TutorialAction, TutorialViewState};
+use crate::interfaces::tutorial::{
+    TutorialAction, TutorialViewState, tutorial_from_states, tutorial_png_bytes,
+};
 #[cfg(target_arch = "wasm32")]
 use crate::interfaces::utility;
 #[cfg(target_arch = "wasm32")]
+use crate::style;
+#[cfg(target_arch = "wasm32")]
 use shared::tutorial::Tutorial;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::closure::Closure;
+use std::rc::Rc;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsCast;
+#[cfg(target_arch = "wasm32")]
+use wasm_bindgen::closure::Closure;
 #[cfg(target_arch = "wasm32")]
 use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 #[cfg(target_arch = "wasm32")]
@@ -170,6 +174,105 @@ fn export_tutorial_svg(states: &[BrickState]) -> Result<String, String> {
 }
 
 #[cfg(target_arch = "wasm32")]
+fn selected_bricks(tutorial: &TutorialViewState, export_selection: &[bool]) -> Vec<BrickState> {
+    tutorial
+        .get_brick_state_list()
+        .into_iter()
+        .enumerate()
+        .filter_map(|(index, brick)| {
+            export_selection
+                .get(index)
+                .copied()
+                .unwrap_or(false)
+                .then_some(brick)
+        })
+        .collect()
+}
+
+#[cfg(target_arch = "wasm32")]
+fn export_selected_bricks<F>(
+    tutorial: &TutorialViewState,
+    export_selection: &[bool],
+    exporter: F,
+) -> Result<(), String>
+where
+    F: FnOnce(&[BrickState]) -> Result<(), String>,
+{
+    let selected = selected_bricks(tutorial, export_selection);
+    if selected.is_empty() {
+        return Err("Export error: no bricks selected".to_string());
+    }
+    exporter(&selected)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn create_object_url(data: &[u8], mime: &str) -> Result<String, String> {
+    let uint8 = js_sys::Uint8Array::from(data);
+    let parts = js_sys::Array::new();
+    parts.push(&uint8.buffer());
+    let mut opts = BlobPropertyBag::new();
+    #[allow(deprecated)]
+    opts.type_(mime);
+
+    let blob = Blob::new_with_buffer_source_sequence_and_options(&parts, &opts)
+        .map_err(|e| format!("blob error: {e:?}"))?;
+    Url::create_object_url_with_blob(&blob).map_err(|e| format!("URL error: {e:?}"))
+}
+
+#[cfg(target_arch = "wasm32")]
+fn cached_download_callback(
+    cached_url: UseStateHandle<Option<String>>,
+    rendering: UseStateHandle<bool>,
+    filename: &'static str,
+    label: &'static str,
+    render_bytes: Rc<dyn Fn() -> Result<Vec<u8>, String>>,
+) -> Callback<MouseEvent> {
+    Callback::from(move |_: MouseEvent| {
+        if *rendering {
+            return;
+        }
+        if let Some(url) = (*cached_url).clone() {
+            trigger_download(&url, filename);
+            return;
+        }
+
+        rendering.set(true);
+        let cached_url_done = cached_url.clone();
+        let rendering_done = rendering.clone();
+        let render_bytes = render_bytes.clone();
+
+        let callback = Closure::once(move || {
+            match render_bytes().and_then(|data| create_object_url(&data, "application/zip")) {
+                Ok(url) => {
+                    cached_url_done.set(Some(url.clone()));
+                    trigger_download(&url, filename);
+                }
+                Err(error) => {
+                    web_sys::console::error_1(&format!("{label} {error}").into());
+                }
+            }
+            rendering_done.set(false);
+        });
+
+        if let Some(window) = web_sys::window() {
+            let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
+                callback.as_ref().unchecked_ref(),
+                0,
+            );
+            callback.forget();
+        } else {
+            rendering.set(false);
+        }
+    })
+}
+
+#[cfg(target_arch = "wasm32")]
+fn close_menu(menu_open: &UseStateHandle<bool>, help_submenu_open: &UseStateHandle<bool>) {
+    menu_open.set(false);
+    help_submenu_open.set(false);
+}
+
+#[cfg(target_arch = "wasm32")]
 #[derive(Clone, Default, PartialEq)]
 struct AppSnapshot {
     brick: BrickState,
@@ -294,30 +397,16 @@ fn app() -> Html {
         let export_selection = export_selection.clone();
         let export_mode = export_mode.clone();
         Callback::from(move |_: MouseEvent| {
-            let bricks = (*tutorial).get_brick_state_list();
             let selection = (*export_selection).clone();
-            let selected: Vec<BrickState> = bricks
-                .into_iter()
-                .enumerate()
-                .filter_map(|(index, brick)| {
-                    if selection.get(index).copied().unwrap_or(false) {
-                        Some(brick)
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            if selected.is_empty() {
-                web_sys::console::error_1(&"Export error: no bricks selected".into());
-                return;
+            match export_selected_bricks(&tutorial, &selection, |selected| {
+                let tutorial = tutorial_from_states(selected, "Exported tutorial");
+                let json = tutorial.to_json();
+                utility::download_json(&json, "tutorial.json")
+                    .map_err(|e| format!("Export error: {e}"))
+            }) {
+                Ok(()) => export_mode.set(false),
+                Err(error) => web_sys::console::error_1(&error.into()),
             }
-            let tutorial = tutorial_from_states(&selected, "Exported tutorial");
-            let json = tutorial.to_json();
-            if let Err(e) = utility::download_json(&json, "tutorial.json") {
-                web_sys::console::error_1(&format!("Export error: {e}").into());
-                return;
-            }
-            export_mode.set(false);
         })
     };
 
@@ -326,36 +415,15 @@ fn app() -> Html {
         let export_selection = export_selection.clone();
         let export_mode = export_mode.clone();
         Callback::from(move |_: MouseEvent| {
-            let bricks = (*tutorial).get_brick_state_list();
             let selection = (*export_selection).clone();
-            let selected: Vec<BrickState> = bricks
-                .into_iter()
-                .enumerate()
-                .filter_map(|(index, brick)| {
-                    if selection.get(index).copied().unwrap_or(false) {
-                        Some(brick)
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            if selected.is_empty() {
-                web_sys::console::error_1(&"Export error: no bricks selected".into());
-                return;
+            match export_selected_bricks(&tutorial, &selection, |selected| {
+                let data = tutorial_png_bytes(selected, 1920)
+                    .map_err(|e| format!("PNG render error: {e}"))?;
+                utility::download_png(&data, "tutorial.png").map_err(|e| format!("PNG error: {e}"))
+            }) {
+                Ok(()) => export_mode.set(false),
+                Err(error) => web_sys::console::error_1(&error.into()),
             }
-            match tutorial_png_bytes(&selected, 1920) {
-                Ok(data) => {
-                    if let Err(e) = utility::download_png(&data, "tutorial.png") {
-                        web_sys::console::error_1(&format!("PNG error: {e}").into());
-                        return;
-                    }
-                }
-                Err(e) => {
-                    web_sys::console::error_1(&format!("PNG render error: {e}").into());
-                    return;
-                }
-            }
-            export_mode.set(false);
         })
     };
 
@@ -364,150 +432,33 @@ fn app() -> Html {
         let export_selection = export_selection.clone();
         let export_mode = export_mode.clone();
         Callback::from(move |_: MouseEvent| {
-            let bricks = (*tutorial).get_brick_state_list();
             let selection = (*export_selection).clone();
-            let selected: Vec<BrickState> = bricks
-                .into_iter()
-                .enumerate()
-                .filter_map(|(index, brick)| {
-                    if selection.get(index).copied().unwrap_or(false) {
-                        Some(brick)
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            if selected.is_empty() {
-                web_sys::console::error_1(&"Export error: no bricks selected".into());
-                return;
-            }
-            match export_tutorial_svg(&selected) {
-                Ok(svg) => {
-                    if let Err(e) = utility::download_svg(&svg, "tutorial.svg") {
-                        web_sys::console::error_1(&format!("SVG error: {e}").into());
-                        return;
-                    }
-                }
-                Err(e) => {
-                    web_sys::console::error_1(&format!("SVG render error: {e}").into());
-                    return;
-                }
-            }
-            export_mode.set(false);
-        })
-    };
-
-    let export_all_bricks_zip = {
-        let all_bricks_url = all_bricks_url.clone();
-        let all_bricks_rendering = all_bricks_rendering.clone();
-        Callback::from(move |_: MouseEvent| {
-            if *all_bricks_rendering {
-                return;
-            }
-            if let Some(url) = (*all_bricks_url).clone() {
-                trigger_download(&url, "all_bricks.zip");
-                return;
-            }
-            all_bricks_rendering.set(true);
-            let all_bricks_url = all_bricks_url.clone();
-            let all_bricks_rendering_done = all_bricks_rendering.clone();
-            let callback = Closure::once(move || {
-                match catalog::render_all_bricks_zip_bytes(192) {
-                    Ok(data) => {
-                        let uint8 = js_sys::Uint8Array::from(&data[..]);
-                        let parts = js_sys::Array::new();
-                        parts.push(&uint8.buffer());
-                        let mut opts = BlobPropertyBag::new();
-                        #[allow(deprecated)]
-                        opts.type_("application/zip");
-                        match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
-                            Ok(blob) => match Url::create_object_url_with_blob(&blob) {
-                                Ok(url) => {
-                                    all_bricks_url.set(Some(url.clone()));
-                                    trigger_download(&url, "all_bricks.zip");
-                                }
-                                Err(e) => web_sys::console::error_1(
-                                    &format!("All bricks URL error: {e:?}").into(),
-                                ),
-                            },
-                            Err(e) => web_sys::console::error_1(
-                                &format!("All bricks blob error: {e:?}").into(),
-                            ),
-                        }
-                    }
-                    Err(e) => {
-                        web_sys::console::error_1(&format!("All bricks render error: {e}").into())
-                    }
-                }
-                all_bricks_rendering_done.set(false);
-            });
-            if let Some(window) = web_sys::window() {
-                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
-                    callback.as_ref().unchecked_ref(),
-                    0,
-                );
-                callback.forget();
-            } else {
-                all_bricks_rendering.set(false);
+            match export_selected_bricks(&tutorial, &selection, |selected| {
+                let svg =
+                    export_tutorial_svg(selected).map_err(|e| format!("SVG render error: {e}"))?;
+                utility::download_svg(&svg, "tutorial.svg").map_err(|e| format!("SVG error: {e}"))
+            }) {
+                Ok(()) => export_mode.set(false),
+                Err(error) => web_sys::console::error_1(&error.into()),
             }
         })
     };
 
-    let export_ninepatch_zip = {
-        let ninepatch_url = ninepatch_url.clone();
-        let ninepatch_rendering = ninepatch_rendering.clone();
-        Callback::from(move |_: MouseEvent| {
-            if *ninepatch_rendering {
-                return;
-            }
-            if let Some(url) = (*ninepatch_url).clone() {
-                trigger_download(&url, "ninepatch_bricks.zip");
-                return;
-            }
-            ninepatch_rendering.set(true);
-            let ninepatch_url = ninepatch_url.clone();
-            let ninepatch_rendering_done = ninepatch_rendering.clone();
-            let callback = Closure::once(move || {
-                match ninepatch::render_ninepatch_zip_bytes() {
-                    Ok(data) => {
-                        let uint8 = js_sys::Uint8Array::from(&data[..]);
-                        let parts = js_sys::Array::new();
-                        parts.push(&uint8.buffer());
-                        let mut opts = BlobPropertyBag::new();
-                        #[allow(deprecated)]
-                        opts.type_("application/zip");
-                        match Blob::new_with_buffer_source_sequence_and_options(&parts, &opts) {
-                            Ok(blob) => match Url::create_object_url_with_blob(&blob) {
-                                Ok(url) => {
-                                    ninepatch_url.set(Some(url.clone()));
-                                    trigger_download(&url, "ninepatch_bricks.zip");
-                                }
-                                Err(e) => web_sys::console::error_1(
-                                    &format!("Ninepatch URL error: {e:?}").into(),
-                                ),
-                            },
-                            Err(e) => web_sys::console::error_1(
-                                &format!("Ninepatch blob error: {e:?}").into(),
-                            ),
-                        }
-                    }
-                    Err(e) => {
-                        web_sys::console::error_1(&format!("Ninepatch render error: {e}").into())
-                    }
-                }
-                ninepatch_rendering_done.set(false);
-            });
-            if let Some(window) = web_sys::window() {
-                let _ = window.set_timeout_with_callback_and_timeout_and_arguments_0(
-                    callback.as_ref().unchecked_ref(),
-                    0,
-                );
-                callback.forget();
-            } else {
-                ninepatch_rendering.set(false);
-            }
-        })
-    };
+    let export_all_bricks_zip = cached_download_callback(
+        all_bricks_url.clone(),
+        all_bricks_rendering.clone(),
+        "all_bricks.zip",
+        "All bricks render error:",
+        Rc::new(|| catalog::render_all_bricks_zip_bytes(192).map_err(|e| e.to_string())),
+    );
+
+    let export_ninepatch_zip = cached_download_callback(
+        ninepatch_url.clone(),
+        ninepatch_rendering.clone(),
+        "ninepatch_bricks.zip",
+        "Ninepatch render error:",
+        Rc::new(|| ninepatch::render_ninepatch_zip_bytes().map_err(|e| e.to_string())),
+    );
 
     let on_enter_export_mode = {
         let export_mode = export_mode.clone();
@@ -557,8 +508,7 @@ fn app() -> Html {
         let menu_open = menu_open.clone();
         let help_submenu_open = help_submenu_open.clone();
         Callback::from(move |_: MouseEvent| {
-            menu_open.set(false);
-            help_submenu_open.set(false);
+            close_menu(&menu_open, &help_submenu_open);
         })
     };
 
@@ -580,7 +530,8 @@ fn app() -> Html {
                 let pending_restores = usize::from(*brick != snapshot.brick)
                     + usize::from(*tutorial != snapshot.tutorial);
                 *restoring_history.borrow_mut() = pending_restores;
-                brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
+                brick_dispatcher
+                    .dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
             }
@@ -602,7 +553,8 @@ fn app() -> Html {
                 let pending_restores = usize::from(*brick != snapshot.brick)
                     + usize::from(*tutorial != snapshot.tutorial);
                 *restoring_history.borrow_mut() = pending_restores;
-                brick_dispatcher.dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
+                brick_dispatcher
+                    .dispatch(crate::interfaces::brick::StateAction::Set(snapshot.brick));
                 tutorial_dispatcher.dispatch(TutorialAction::Restore(snapshot.tutorial));
                 history_index.set(target_index);
             }
@@ -620,8 +572,7 @@ fn app() -> Html {
         let menu_open = menu_open.clone();
         let help_submenu_open = help_submenu_open.clone();
         Callback::from(move |_: MouseEvent| {
-            menu_open.set(false);
-            help_submenu_open.set(false);
+            close_menu(&menu_open, &help_submenu_open);
         })
     };
 
@@ -630,8 +581,7 @@ fn app() -> Html {
         let help_submenu_open = help_submenu_open.clone();
         let explanation_modal_open = explanation_modal_open.clone();
         Callback::from(move |_: MouseEvent| {
-            menu_open.set(false);
-            help_submenu_open.set(false);
+            close_menu(&menu_open, &help_submenu_open);
             explanation_modal_open.set(true);
         })
     };
@@ -650,8 +600,7 @@ fn app() -> Html {
                     "About BrickCreator\n\nBrickCreator is a website built by and for Catrobat Pocket Code users, especially educators who teach Pocket Code.\n\nIt allows users to create PNG, SVG, and JSON files that can be directly used in presentations, teaching materials, and tutorials.\n\nCatrobat is an open-source platform with contributors from all over the world. For more information, visit: https://catrobat.org/about",
                 );
             }
-            menu_open.set(false);
-            help_submenu_open.set(false);
+            close_menu(&menu_open, &help_submenu_open);
         })
     };
 

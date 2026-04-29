@@ -1,7 +1,7 @@
 #[cfg(target_arch = "wasm32")]
 use crate::{
-    app::views::brick::BrickView,
-    components::drag_drop_list::{DragDropItem, DragDropList},
+    app::views::view::brick_view::BrickView,
+    components::drag_drop::drag_drop_list::{DragDropItem, DragDropList},
     interfaces::brick::BrickState,
     style,
 };

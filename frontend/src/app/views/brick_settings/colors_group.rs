@@ -1,13 +1,13 @@
 #[cfg(target_arch = "wasm32")]
-use crate::style;
-#[cfg(target_arch = "wasm32")]
-use crate::app::views::color::ColorView;
-#[cfg(target_arch = "wasm32")]
-use crate::components::modal::Modal;
+use crate::app::views::view::color_view::ColorView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::editor_group::EditorGroup;
 #[cfg(target_arch = "wasm32")]
+use crate::components::modal::Modal;
+#[cfg(target_arch = "wasm32")]
 use crate::interfaces::color::{BrickColorModel, ColorModel};
+#[cfg(target_arch = "wasm32")]
+use crate::style;
 #[cfg(target_arch = "wasm32")]
 use shared::color::ColorScheme;
 #[cfg(target_arch = "wasm32")]
@@ -111,7 +111,12 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
     let custom_color_names = colors
         .iter()
         .map(|color| color.name.clone())
-        .filter(|name| !model.default_colors().iter().any(|entry| entry.name == *name))
+        .filter(|name| {
+            !model
+                .default_colors()
+                .iter()
+                .any(|entry| entry.name == *name)
+        })
         .collect::<Vec<_>>();
 
     let open_modal = {
@@ -192,7 +197,9 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
         Callback::from(move |_| {
             let new_color = (*draft).to_scheme();
             if new_color.name.is_empty() {
-                error_message.set(Some("Give the custom color a name before saving.".to_string()));
+                error_message.set(Some(
+                    "Give the custom color a name before saving.".to_string(),
+                ));
                 return;
             }
 
@@ -358,7 +365,11 @@ pub fn colors_group(props: &ColorsGroupProps) -> Html {
     } else {
         "Add a reusable color scheme for this session or save it for later on this device."
     };
-    let save_button_label = if is_editing { "Save changes" } else { "Save color" };
+    let save_button_label = if is_editing {
+        "Save changes"
+    } else {
+        "Save color"
+    };
 
     html! {
         <EditorGroup

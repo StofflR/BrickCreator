@@ -7,7 +7,7 @@ use crate::style;
 use yew::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
-use crate::app::views::brick::BrickView;
+use crate::app::views::view::brick_view::BrickView;
 #[cfg(target_arch = "wasm32")]
 use crate::components::card::Card;
 #[cfg(target_arch = "wasm32")]
@@ -25,9 +25,7 @@ fn group_key_from_path(path: &str) -> &str {
 #[cfg(target_arch = "wasm32")]
 fn label_from_path(path: &str) -> String {
     let file = path.rsplit_once('/').map(|(_, f)| f).unwrap_or(path);
-    file.strip_suffix(".json")
-        .unwrap_or(file)
-        .replace('_', " ")
+    file.strip_suffix(".json").unwrap_or(file).replace('_', " ")
 }
 
 #[cfg(target_arch = "wasm32")]
