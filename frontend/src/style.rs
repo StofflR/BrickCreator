@@ -124,8 +124,7 @@ pub const TUTORIAL_SETTINGS_ACTIONS: &str = "flex flex-row flex-wrap gap-1.5";
 
 pub const BRICK_SETTINGS_EDITOR_GROUP_CLASS: &str = "w-full";
 pub const BRICK_SETTINGS_EDITOR_GROUP_CONTENT: &str = "min-h-0 flex-1 overflow-y-auto";
-pub const BRICK_TYPES_EDITOR_GROUP_CONTENT: &str =
-    "min-h-0 flex-1 overflow-y-auto max-[900px]:overflow-visible max-[900px]:p-2";
+pub const BRICK_TYPES_SCROLL_WRAP: &str = "min-h-0 h-full overflow-y-auto";
 pub const CONTENT_GROUP_CLASS: &str = "flex-none overflow-hidden";
 pub const CONTENT_GROUP_CONTENT_CLASS: &str = "flex-none overflow-hidden max-[900px]:items-stretch";
 pub const CONTENT_GROUP_SHELL: &str = "relative flex min-w-0 flex-1 w-full";
