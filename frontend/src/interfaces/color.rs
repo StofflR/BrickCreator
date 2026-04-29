@@ -5,6 +5,7 @@ pub trait ColorModel {
     fn custom_colors(&self) -> &[ColorScheme];
     fn all_colors(&self) -> Vec<ColorScheme>;
     fn add_custom_color(&mut self, color: ColorScheme) -> bool;
+    fn replace_custom_color(&mut self, original_name: &str, color: ColorScheme) -> bool;
     fn remove_custom_color(&mut self, name: &str) -> bool;
 }
 
@@ -72,6 +73,33 @@ impl ColorModel for BrickColorModel {
         }
 
         self.custom_colors.push(color);
+        true
+    }
+
+    fn replace_custom_color(&mut self, original_name: &str, color: ColorScheme) -> bool {
+        let Some(index) = self
+            .custom_colors
+            .iter()
+            .position(|entry| entry.name == original_name)
+        else {
+            return false;
+        };
+
+        let exists_in_defaults = self
+            .default_colors
+            .iter()
+            .any(|entry| entry.name == color.name);
+        let exists_in_other_custom = self
+            .custom_colors
+            .iter()
+            .enumerate()
+            .any(|(entry_index, entry)| entry_index != index && entry.name == color.name);
+
+        if exists_in_defaults || exists_in_other_custom {
+            return false;
+        }
+
+        self.custom_colors[index] = color;
         true
     }
 
