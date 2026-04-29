@@ -8,7 +8,8 @@ const DROP_SCALE: f32 = 0.8;
 const DROPDOWN_TRIANGLE_SCALE: f32 = 0.65;
 const DROPDOWN_TRIANGLE_RIGHT_MARGIN: f32 = 0.2;
 pub const DEFAULT_X_OFFSET: f32 = 0.11;
-pub const EMPTY_BRICK_HINT: &str = "Enter content here! Use * for variables and _ for dropdowns";
+pub const EMPTY_BRICK_HINT: &str =
+    "Enter content here! Use *word* for variables and _word_ for dropdowns";
 
 #[derive(Clone, Debug, PartialEq)]
 pub enum ContentLine {
@@ -47,6 +48,28 @@ fn svg_text_scale(font_size: f32) -> Scale {
 fn advance(text: &str, scale: &Scale) -> f32 {
     let (advance, _) = get_font_metrics(text, scale);
     advance
+}
+
+fn split_marker_pair<'a>(content: &'a str, marker: &str) -> Option<(&'a str, &'a str, &'a str)> {
+    let mut start = 0;
+
+    while let Some(open_offset) = content[start..].find(marker) {
+        let open = start + open_offset;
+        let inner_start = open + marker.len();
+
+        if let Some(close_offset) = content[inner_start..].find(marker) {
+            let close = inner_start + close_offset;
+            let inner = &content[inner_start..close];
+            if inner.chars().any(|ch| !ch.is_whitespace()) {
+                return Some((&content[..open], inner, &content[close + marker.len()..]));
+            }
+            start = close + marker.len();
+        } else {
+            return None;
+        }
+    }
+
+    None
 }
 
 pub fn get_cap_height(scale: &Scale) -> f32 {
@@ -128,32 +151,30 @@ pub fn render_empty_hint(
 }
 
 pub fn content_width(content: &str, brick: &BaseBrick) -> f32 {
-    let segmetns = content.splitn(3, VARIABLE_MARKER);
     let font_size = font_size_from_scale(&brick.scale);
     let text_scale = svg_text_scale(font_size);
     let drop_font_size = font_size * DROP_SCALE;
     let drop_scale = svg_text_scale(drop_font_size);
 
-    segmetns
-        .enumerate()
-        .map(|(index, element)| match index {
-            0 => line_segment_width(element, &text_scale, &drop_scale),
-            1 => advance(element, &text_scale),
-            _ => content_width(element, brick),
-        })
-        .sum()
+    match split_marker_pair(content, VARIABLE_MARKER) {
+        Some((prefix, inner, suffix)) => {
+            line_segment_width(prefix, &text_scale, &drop_scale)
+                + advance(inner, &text_scale)
+                + content_width(suffix, brick)
+        }
+        None => line_segment_width(content, &text_scale, &drop_scale),
+    }
 }
 
 fn line_segment_width(content: &str, text_scale: &Scale, drop_scale: &Scale) -> f32 {
-    content
-        .splitn(3, DROP_MARKER)
-        .enumerate()
-        .map(|(index, element)| match index {
-            0 => advance(element, text_scale),
-            1 => advance(element, drop_scale),
-            _ => line_segment_width(element, text_scale, drop_scale),
-        })
-        .sum()
+    match split_marker_pair(content, DROP_MARKER) {
+        Some((prefix, inner, suffix)) => {
+            advance(prefix, text_scale)
+                + advance(inner, drop_scale)
+                + line_segment_width(suffix, text_scale, drop_scale)
+        }
+        None => advance(content, text_scale),
+    }
 }
 
 fn handle_drop(content: &str, color_scheme: &ColorScheme, font_size: f32) -> String {
@@ -175,7 +196,7 @@ pub fn dropdown_triangle_reserved_width(scale: &Scale) -> f32 {
 }
 
 pub fn line_has_dropdown(content: &str) -> bool {
-    content.contains(DROP_MARKER)
+    split_marker_pair(content, DROP_MARKER).is_some()
 }
 
 pub fn render_line_dropdown_triangle(
@@ -203,41 +224,31 @@ pub fn render_line_dropdown_triangle(
 }
 
 fn handle_line_segment(content: &str, brick: &BaseBrick) -> String {
-    let segments = content.splitn(3, DROP_MARKER);
     let font_size = font_size_from_scale(&brick.scale);
     let text_scale = svg_text_scale(font_size);
     let drop_font_size = font_size * DROP_SCALE;
     let drop_scale = svg_text_scale(drop_font_size);
-    segments
-        .enumerate()
-        .map(|(index, element)| match index {
-            0 => {
-                let width = advance(element, &text_scale);
-                (
-                    handle_text(element, &brick.color_scheme, font_size, width),
-                    width,
-                )
-            }
-            1 => {
-                let width = advance(element, &drop_scale);
-                (
-                    handle_drop(element, &brick.color_scheme, drop_font_size),
-                    width,
-                )
-            }
-            _ => (parse_line(element, brick), 0.0),
-        })
-        .fold(
-            (0.0, String::new()),
-            |(acc, content), (current, advance)| {
-                let current = format!(
-                    "<g transform=\"translate({} {})\">{}</g>",
-                    acc, 0.0, current
-                );
-                (acc + advance, format!("{}{}", content, current))
-            },
-        )
-        .1
+
+    match split_marker_pair(content, DROP_MARKER) {
+        Some((prefix, inner, suffix)) => {
+            let prefix_width = advance(prefix, &text_scale);
+            let drop_width = advance(inner, &drop_scale);
+            let suffix = parse_line(suffix, brick);
+
+            format!(
+                "<g transform=\"translate(0 0)\">{}</g><g transform=\"translate({} 0)\">{}</g><g transform=\"translate({} 0)\">{}</g>",
+                handle_text(prefix, &brick.color_scheme, font_size, prefix_width),
+                prefix_width,
+                handle_drop(inner, &brick.color_scheme, drop_font_size),
+                prefix_width + drop_width,
+                suffix
+            )
+        }
+        None => {
+            let width = advance(content, &text_scale);
+            handle_text(content, &brick.color_scheme, font_size, width)
+        }
+    }
 }
 fn handle_variable(content: &str, brick: &BaseBrick) -> String {
     let color_scheme = &brick.color_scheme;
@@ -260,38 +271,26 @@ fn handle_variable(content: &str, brick: &BaseBrick) -> String {
 }
 
 pub fn parse_line(content: &str, brick: &BaseBrick) -> String {
-    let segmetns = content.splitn(3, VARIABLE_MARKER);
     let font_size = font_size_from_scale(&brick.scale);
     let text_scale = svg_text_scale(font_size);
 
-    segmetns
-        .enumerate()
-        .map(|(index, element)| match index {
-            0 => (
-                handle_line_segment(element, brick),
-                line_segment_width(
-                    element,
-                    &text_scale,
-                    &svg_text_scale(font_size * DROP_SCALE),
-                ),
-            ),
-            1 => (
-                handle_variable(element, brick),
-                advance(element, &text_scale),
-            ),
-            _ => (parse_line(element, brick), 0.0),
-        })
-        .fold(
-            (0.0, String::new()),
-            |(acc, content), (current, advance)| {
-                let current = format!(
-                    "<g transform=\"translate({} {})\">{}</g>",
-                    acc, 0.0, current
-                );
-                (acc + advance, format!("{}{}", content, current))
-            },
-        )
-        .1
+    match split_marker_pair(content, VARIABLE_MARKER) {
+        Some((prefix, inner, suffix)) => {
+            let prefix_width =
+                line_segment_width(prefix, &text_scale, &svg_text_scale(font_size * DROP_SCALE));
+            let variable_width = advance(inner, &text_scale);
+
+            format!(
+                "<g transform=\"translate(0 0)\">{}</g><g transform=\"translate({} 0)\">{}</g><g transform=\"translate({} 0)\">{}</g>",
+                handle_line_segment(prefix, brick),
+                prefix_width,
+                handle_variable(inner, brick),
+                prefix_width + variable_width,
+                parse_line(suffix, brick)
+            )
+        }
+        None => handle_line_segment(content, brick),
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -310,5 +309,32 @@ impl Default for BaseBrick {
             offset: (DEFAULT_X_OFFSET, 0.0),
             scale: Scale { x: 18.75, y: 13.0 },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lone_markers_do_not_create_dropdowns() {
+        assert!(!line_has_dropdown("before _ after"));
+        assert!(!line_has_dropdown("_"));
+    }
+
+    #[test]
+    fn paired_dropdown_markers_still_work() {
+        assert!(line_has_dropdown("before _choice_ after"));
+    }
+
+    #[test]
+    fn parser_requires_paired_variable_markers() {
+        let brick = BaseBrick::default();
+
+        let plain = parse_line("keep * this plain", &brick);
+        let variable = parse_line("make *this* variable", &brick);
+
+        assert!(plain.contains("keep&#160;*&#160;this&#160;plain"));
+        assert!(variable.contains("<line stroke="));
     }
 }
