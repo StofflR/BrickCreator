@@ -898,6 +898,14 @@ fn app() -> Html {
                         </div>
                         <div class="explanation-modal__row">
                             <div class="explanation-modal__icon explanation-modal__icon--text">
+                                {"+"}
+                            </div>
+                            <div class="explanation-modal__text">
+                                {"Add a custom color. Right-click a custom color to edit or delete it. You can also tick the option to store the color on the device and reuse it later."}
+                            </div>
+                        </div>
+                        <div class="explanation-modal__row">
+                            <div class="explanation-modal__icon explanation-modal__icon--text">
                                 {"↑ ↓"}
                             </div>
                             <div class="explanation-modal__text">
