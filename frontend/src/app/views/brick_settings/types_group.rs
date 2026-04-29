@@ -26,13 +26,15 @@ pub fn types_group(props: &TypesGroupProps) -> Html {
         <EditorGroup
             title="Brick Types"
             class={style::BRICK_SETTINGS_EDITOR_GROUP_CLASS}
-            content_class={style::BRICK_TYPES_EDITOR_GROUP_CONTENT}
+            content_class={style::BRICK_SETTINGS_EDITOR_GROUP_CONTENT}
         >
-            <BrickTypeView
-                selected={props.selected}
-                color_scheme={props.color_scheme.clone()}
-                on_select={props.on_select.clone()}
-            />
+            <div class={style::BRICK_TYPES_SCROLL_WRAP}>
+                <BrickTypeView
+                    selected={props.selected}
+                    color_scheme={props.color_scheme.clone()}
+                    on_select={props.on_select.clone()}
+                />
+            </div>
         </EditorGroup>
     }
 }
